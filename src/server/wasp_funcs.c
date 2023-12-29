@@ -81,7 +81,7 @@ void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
         forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
     } else {        
         // Define the direction of the wasp
-        stingOccurred = WaspStingsLizard(my_win, headLizardList, NULL, headWaspList, wasp);  // Check if the wasp stings a lizard
+        stingOccurred = WaspStingsLizard(my_win, &headLizardList, NULL, headWaspList, waspClient);  // Check if the wasp stings a lizard
 
         waspClient->wasps[wasp].direction = direction;
         m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Atualiza o tipo de mensagem para movimento de vespa

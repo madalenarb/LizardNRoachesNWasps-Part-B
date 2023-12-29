@@ -75,7 +75,7 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList);
+void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList, LizardClient *headLizardList);
 
 /**
  * @brief Disconnects all wasp clients at the end of the game or during shutdown.

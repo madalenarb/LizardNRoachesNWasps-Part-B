@@ -89,7 +89,7 @@ int main() {
             }      
 
         }
-            
+                
     }while (!flag_exit);
    
    // Adicione uma pequena pausa antes de encerrar

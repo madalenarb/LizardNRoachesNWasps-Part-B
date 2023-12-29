@@ -99,7 +99,7 @@ int main()
 
         case MSG_TYPE_WASPS_MOVEMENT:
             direction = m.direction;
-            handleWaspMovement(my_win, &headWaspList, &m, direction, socket, &headRoachList);
+            handleWaspMovement(my_win, &headWaspList, &m, direction, socket, &headRoachList, headLizardList);
             break;
 
         default:
