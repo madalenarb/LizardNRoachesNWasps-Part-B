@@ -38,6 +38,6 @@ void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  * @param currentWasp Pointer to the current wasp client.
  */
-int WaspStingsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp);
+int WaspStingsLizard(LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp);
 
 #endif // EVENTS_H

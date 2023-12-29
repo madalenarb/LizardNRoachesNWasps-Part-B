@@ -234,7 +234,7 @@ void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachCl
         if(currentLizard != NULL){
             currentLizard->direction = m->direction;
             m->msg_type = MSG_TYPE_ACK;
-            stingOccurred = WaspStingsLizard(my_win, headLizardList, currentLizard, headWaspList, NULL);
+            stingOccurred = WaspStingsLizard(headLizardList, currentLizard, headWaspList, NULL);
             flag = lizardHitsLizard(my_win, headLizardList, currentLizard);
             if(flag == 0 && stingOccurred == 0){
                 updateAndRenderOneLizard(my_win, currentLizard);

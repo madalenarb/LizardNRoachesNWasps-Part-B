@@ -48,11 +48,24 @@ void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *
     }
 }
 
-int WaspStingsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp){
+int WaspStingsLizard(LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp){
     int stingOccurred = 0;
 
     // Wasp moved, check if it stings a lizard
-    if(currentLizard != NULL){
+    if(currentWasp != NULL){
+        for(int i = 0; i < currentWasp->num_wasps; i++){
+            position_t nextPositionWasp = auxNextPosition(currentWasp->wasps[i].position, currentWasp->wasps[i].direction);
+            LizardClient *lizardClient = *headLizardList;
+            while(lizardClient != NULL){
+                if(comparePosition(nextPositionWasp, lizardClient->position)){
+                    lizardClient->score -= 10;
+                    stingOccurred = 1;
+                    printf("Lizard %c stung by wasp %d\n", lizardClient->id, i);
+                }
+                lizardClient = lizardClient->next;
+            }
+        }
+    } else if(currentLizard != NULL){
         // Lizard moved, check if it stings a lizard
         position_t nextPositionLizard = auxNextPosition(currentLizard->position, currentLizard->direction);
         WaspClient *waspClient = *headWaspList;
@@ -60,9 +73,6 @@ int WaspStingsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient
             for(int i = 0; i < waspClient->num_wasps; i++){
                 if(comparePosition(nextPositionLizard, waspClient->wasps[i].position)){
                     currentLizard->score -= 10;
-                    cleanLizard(my_win, currentLizard);
-                    lizardTailOrientation(currentLizard);
-                    renderLizardTail(my_win, currentLizard);
                     stingOccurred = 1;
                 }
             }
