@@ -29,4 +29,5 @@ clean:
 	@$(MAKE) -C src/server clean
 	@$(MAKE) -C src/lizard-client clean
 	@$(MAKE) -C src/roaches-client clean
+	@$(MAKE) -C src/display-app clean
 	@$(MAKE) -C src/wasps-client clean
