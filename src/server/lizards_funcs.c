@@ -144,7 +144,7 @@ void new_position(LizardClient* otherLizard){
 
 void forceLizardDisconnect(message_t *m, void *socket){
     message_t disconnectMessage;
-    disconnectMessage.msg_type = MSG_TYPE_DISCONNECT;
+    disconnectMessage.msg_type = MSG_TYPE_LIZARD_DISCONNECT;
     zmq_recv(socket, m, sizeof(message_t), 0);
     zmq_send(socket, &disconnectMessage, sizeof(message_t), 0);
 }
@@ -234,7 +234,7 @@ void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachCl
         if(currentLizard != NULL){
             currentLizard->direction = m->direction;
             m->msg_type = MSG_TYPE_ACK;
-            stingOccurred = WaspStingsLizard(headLizardList, currentLizard, headWaspList, NULL);
+            stingOccurred = WaspStingsLizard(my_win, headLizardList, currentLizard, headWaspList, NULL);
             flag = lizardHitsLizard(my_win, headLizardList, currentLizard);
             if(flag == 0 && stingOccurred == 0){
                 updateAndRenderOneLizard(my_win, currentLizard);
@@ -254,7 +254,7 @@ void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachCl
 void handleLizardDisconnect(WINDOW *my_win, LizardClient **headLizardList, message_t *m, void *socket, int *nClients){
     LizardClient *otherLizard = findLizardClient(*headLizardList, m->ch);
     if(otherLizard != NULL){
-        m->msg_type = MSG_TYPE_DISCONNECT;
+        m->msg_type = MSG_TYPE_LIZARD_DISCONNECT;
         zmq_send(socket, &m, sizeof(*m), 0);
         cleanLizard(my_win, otherLizard);
         disconnectLizardClient(headLizardList, m->ch);
@@ -270,7 +270,7 @@ void disconnectAllLizards(LizardClient **headLizardList, void *socket) {
         message_t m;
         zmq_recv(socket, &m, sizeof(m), 0);
         message_t disconnectMessage;
-        disconnectMessage.msg_type = MSG_TYPE_DISCONNECT;
+        disconnectMessage.msg_type = MSG_TYPE_LIZARD_DISCONNECT;
         disconnectMessage.ch = currentLizard->id;
 
         zmq_send(socket, &disconnectMessage, sizeof(message_t), 0);

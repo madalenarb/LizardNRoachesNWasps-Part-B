@@ -61,6 +61,28 @@ int countWasps(WaspClient *headWaspList){
     return count;
 }
 
+void removeWaspClient(WaspClient **headWaspList, int id_wasp){
+    if(*headWaspList == NULL){
+        return;
+    }
+    
+    WaspClient *temp = *headWaspList, *prev = NULL;
+    if(temp != NULL && temp->id == id_wasp){
+        *headWaspList = temp->next;
+        free(temp);
+        return;
+    }
+    while(temp != NULL && temp->id != id_wasp){
+        prev = temp;
+        temp = temp->next;
+    }
+    if(temp == NULL){
+        return;
+    }
+    prev->next = temp->next;
+    free(temp);
+}
+
 void printWaspList(WaspClient *headWaspList){
     WaspClient *currentWaspClient = headWaspList;
     while(currentWaspClient != NULL){

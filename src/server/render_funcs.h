@@ -155,7 +155,7 @@ void updateRoachesVisibility(RoachClient **headRoachList, int id_roach);
  * @param id The ID of the wasp to be rendered.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList);
+void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList, LizardClient *headLizardList);
 
 /**
  * @brief Updates and renders all wasps on the game window.

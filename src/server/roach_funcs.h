@@ -101,4 +101,15 @@ void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *soc
  */
 int checkPositionforRoach(RoachClient **headRoachList, position_t position);
 
+/**
+ * @brief Renders the head of a roach client.
+ * 
+ * Displays the head of a roach client at its current position on the game window.
+ * 
+ * @param my_win Pointer to the game window.
+ * @param roachClient Pointer to the RoachClient structure.
+ * @param id Identifier of the roach within the RoachClient.
+ */
+void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, message_t *m, void *socket, int *NroachesTotal);
+
 #endif // ROACH_FUNCS_H

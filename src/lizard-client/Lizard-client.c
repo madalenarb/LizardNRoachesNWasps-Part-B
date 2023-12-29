@@ -37,7 +37,7 @@ int main()
     zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
     password = ACK_server.password;
     mvprintw(0,0,"score: %d", score);
-    if(ACK_server.msg_type == MSG_TYPE_DISCONNECT || ACK_server.msg_type != MSG_TYPE_ACK){
+    if(ACK_server.msg_type == MSG_TYPE_LIZARD_DISCONNECT || ACK_server.msg_type != MSG_TYPE_ACK){
         zmq_close(socket);
         zmq_close(context);
         printf("You have been disconnected\n");
@@ -69,7 +69,7 @@ int main()
             m.msg_type = MSG_TYPE_LIZARD_MOVEMENT;
             zmq_send(socket, &m, sizeof(message_t), 0);
             zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
-            if(ACK_server.msg_type == MSG_TYPE_DISCONNECT || ACK_server.msg_type != MSG_TYPE_ACK){
+            if(ACK_server.msg_type == MSG_TYPE_LIZARD_DISCONNECT || ACK_server.msg_type != MSG_TYPE_ACK){
                 endwin();
                 zmq_close(socket);
                 zmq_ctx_destroy(context);
@@ -86,7 +86,7 @@ int main()
         refresh();			/* Print it on to the real screen */
     }while(key != 'q' && !flag_exit);
   	endwin();			/* End curses mode		  */
-    m.msg_type = MSG_TYPE_DISCONNECT;
+    m.msg_type = MSG_TYPE_LIZARD_DISCONNECT;
     zmq_send(socket, &m, sizeof(m), 0);
     zmq_close(socket);
     zmq_ctx_destroy(context);

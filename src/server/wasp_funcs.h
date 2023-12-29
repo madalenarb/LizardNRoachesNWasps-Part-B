@@ -78,6 +78,19 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
 void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList, LizardClient *headLizardList);
 
 /**
+ * @brief Handles the disconnection of a wasp client from the server.
+ *
+ * Processes a disconnection message from a wasp client, removing it from the game.
+ *
+ * @param my_win Pointer to the game window.
+ * @param headWaspList Pointer to the head of the linked list of wasp clients.
+ * @param m Pointer to the message structure received from the wasp client.
+ * @param socket Pointer to the ZeroMQ socket used for communication.
+ * @param NwaspsTotal Pointer to the total number of wasps in the game.
+ */
+void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NwaspsTotal);
+
+/**
  * @brief Disconnects all wasp clients at the end of the game or during shutdown.
  * 
  * Ensures a clean and orderly disconnection of all wasp clients from the game,

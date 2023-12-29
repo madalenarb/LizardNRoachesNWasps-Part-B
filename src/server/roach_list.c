@@ -53,6 +53,31 @@ RoachClient* findRoachClient(RoachClient **headRoachList, int id_roach){
     return currentRoachClient;
 }
 
+void removeRoachClient(RoachClient **headRoachList, int id_roach){
+    if(*headRoachList == NULL){
+        return;
+    }
+    
+    RoachClient *temp = *headRoachList, *prev = NULL;
+    if(temp != NULL && temp->id == id_roach){
+        *headRoachList = temp->next;
+        free(temp);
+        return;
+    }
+
+    while(temp != NULL && temp->id != id_roach){
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if(temp == NULL){
+        return;
+    }
+
+    prev->next = temp->next;
+    free(temp);
+}
+
 int countRoaches(RoachClient *headRoachList){
     RoachClient *currentRoachClient = headRoachList;
     int count = 0;
@@ -66,7 +91,6 @@ int countRoaches(RoachClient *headRoachList){
 void printRoachList(RoachClient *headRoachList){
     RoachClient *currentRoachClient = headRoachList;
     while(currentRoachClient != NULL){
-        printf("RoachClient id: %d\n", currentRoachClient->id);
         currentRoachClient = currentRoachClient->next;
     }
 }

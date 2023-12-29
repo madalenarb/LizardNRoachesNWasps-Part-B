@@ -1,6 +1,8 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
-        "render_funcs.h": "c"
+        "render_funcs.h": "c",
+        "roach_funcs.h": "c",
+        "protocol.h": "c"
     }
 }

@@ -11,7 +11,7 @@
 int main() {
     // Signal handler for Ctrl+C
     signal(SIGINT, handle_signal);
-    message_t ACK_server;
+    message_t ACK_server, disconnect_msg;
 
     int n = 0;
     void *context = zmq_ctx_new();
@@ -24,24 +24,17 @@ int main() {
 
     m.N_wasps= rand() % 10 + 1;  // Número aleatório de roaches entre 1 e 10
 
-    // for (int i = 0; i < m.N_wasps; i++) {
-    //    m.wasps_char[i] = '#';  
-    // }
-
     zmq_send(socket, &m, sizeof(message_t), 0);
     zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
     printf("client index: %d\n", ACK_server.index);
-    if(ACK_server.msg_type == MSG_TYPE_DISCONNECT){
+    if(ACK_server.msg_type == MSG_TYPE_WASPS_DISCONNECT){
         zmq_close(socket);
-        zmq_close(context);
+        zmq_ctx_destroy(context);
         printf("Bye\n");
         exit(1);
     }
 
     m.wasp_index = ACK_server.wasp_index;   
-    //roach_msg.msg_type =MSG_TYPE_ROACHES_MOVEMENT;
-
-    //int sleep_delay;
     direction_t direction;
     m.index = ACK_server.index;
 
@@ -80,24 +73,21 @@ int main() {
             zmq_send(socket, &m, sizeof(message_t), 0);
             zmq_recv(socket, &ACK_server, 10, 0);  
             
-            if(ACK_server.msg_type == MSG_TYPE_DISCONNECT){
-                printf("You have been disconnected\n");
+            if(ACK_server.msg_type == MSG_TYPE_LIZARD_DISCONNECT || flag_exit == 1){
+                disconnect_msg.msg_type = MSG_TYPE_WASPS_DISCONNECT;
+                disconnect_msg.index = ACK_server.index;
+                zmq_send(socket, &disconnect_msg, sizeof(message_t), 0);
+                zmq_recv(socket, &ACK_server, sizeof(ACK_server), 0);
                 zmq_close(socket);
-                zmq_close(context);
                 printf("Bye\n");
-                exit(1);
+                break;
             }      
-
         }
-                
-    }while (!flag_exit);
+    } while (!flag_exit && ACK_server.msg_type != MSG_TYPE_WASPS_DISCONNECT);
    
    // Adicione uma pequena pausa antes de encerrar
-    sleep(1);
 
     endwin();			/* End curses mode		  */
-
-    zmq_send(socket, &m, sizeof(m), 0);
     zmq_close(socket);
     zmq_ctx_destroy(context);
 

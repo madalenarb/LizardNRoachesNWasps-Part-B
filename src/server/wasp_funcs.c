@@ -9,7 +9,7 @@
 #include "wasp_funcs.h"
 
 void forceWaspDisconnect(message_t *m, void *socket){
-    m->msg_type = MSG_TYPE_DISCONNECT;
+    m->msg_type = MSG_TYPE_WASPS_DISCONNECT;
     zmq_send(socket, &m, sizeof(*m), 0);
 }
 
@@ -47,6 +47,13 @@ void cleanWasp(WINDOW *my_win, WaspClient *waspClient, int id){
     wrefresh(my_win);
 }
 
+void cleanWaspClient(WINDOW *my_win, WaspClient *waspClient){
+    for (int i = 0; i < waspClient->num_wasps; i++)
+    {
+        cleanWasp(my_win, waspClient, i);
+    }
+}
+
 void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NroachesTotal, int id_wasp){
     m->index = id_wasp;  
     *NroachesTotal += m->N_wasps; //temos que mudar o nome 
@@ -81,14 +88,14 @@ void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
         forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
     } else {        
         // Define the direction of the wasp
-        stingOccurred = WaspStingsLizard(&headLizardList, NULL, headWaspList, waspClient);
+        stingOccurred = WaspStingsLizard(my_win, &headLizardList, NULL, headWaspList, waspClient);
 
         waspClient->wasps[wasp].direction = direction;
         m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Atualiza o tipo de mensagem para movimento de vespa
         
         // Verifica se a vespa está no tabuleiro antes de tentar movê-la
         if(waspClient->wasps[wasp].on_board == 1 && stingOccurred == 0){
-            renderWasp(my_win, waspClient, wasp, headRoachList);  // Render the wasp on the game window
+            renderWasp(my_win, waspClient, wasp, headRoachList, headLizardList);  // Renderiza a vespa
         }
 
         
@@ -107,6 +114,23 @@ void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTo
     }
     freeWaspList(headWaspList);
     *NwaspsTotal = 0;
+}
+
+void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NwaspsTotal){
+    int id_wasp = m->index;
+    WaspClient *waspClient = findWaspClient(headWaspList, id_wasp);
+    if(waspClient == NULL){
+        forceWaspDisconnect(m, socket);
+        return;
+    } else {
+        // Update the total number of wasps
+        *NwaspsTotal -= waspClient->num_wasps;
+        m->msg_type = MSG_TYPE_ACK;
+        zmq_send(socket, m, sizeof(*m), 0);
+        cleanWaspClient(my_win, waspClient);
+        // Remove the wasp client from the list
+        removeWaspClient(headWaspList, id_wasp);
+    }
 }
 
 int checkPositionforWasp(WaspClient *headWaspList, position_t position){

@@ -75,6 +75,16 @@ int countWasps(WaspClient *headWaspList);
 void freeWaspList(WaspClient **headWaspList);
 
 /**
+ * @brief Removes a wasp client from the linked list.
+ *
+ * Searches for a wasp client in the linked list based on its identifier and removes it from the list.
+ *
+ * @param headWaspList Pointer to the head of the linked list of wasp clients.
+ * @param id_wasp Identifier of the wasp client to remove.
+ */
+void removeWaspClient(WaspClient **headWaspList, int id_wasp);
+
+/**
  * @brief Prints the details of all wasp clients in the linked list.
  *
  * Iterates through the linked list of wasp clients, printing details of each client for debugging or information purposes.

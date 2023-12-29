@@ -11,7 +11,7 @@
 int main() {
     // Signal handler for Ctrl+C
     signal(SIGINT, handle_signal);
-    message_t ACK_server;
+    message_t ACK_server, disconnect_msg;
 
     int n = 0;
     void *context = zmq_ctx_new();
@@ -32,7 +32,7 @@ int main() {
     zmq_send(socket, &m, sizeof(message_t), 0);
     zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
     printf("client index: %d\n", ACK_server.index);
-    if(ACK_server.msg_type == MSG_TYPE_DISCONNECT){
+    if(ACK_server.msg_type == MSG_TYPE_ROACHES_DISCONNECT){
         zmq_close(socket);
         zmq_close(context);
         printf("Bye\n");
@@ -74,27 +74,32 @@ int main() {
 
             m.index = ACK_server.index;
             m.roach_index = i;
-            m.msg_type =MSG_TYPE_ROACHES_MOVEMENT;
-            m.direction=direction;
-            printf("roach client %d\n", m.index);
-            printf("roach %d moving to %d\n", m.roach_index, m.direction);
+            m.msg_type = MSG_TYPE_ROACHES_MOVEMENT;
+            m.direction = direction;
             zmq_send(socket, &m, sizeof(message_t), 0);
             zmq_recv(socket, &ACK_server, 10, 0);  
             
-            if(ACK_server.msg_type == MSG_TYPE_DISCONNECT){
+            if(ACK_server.msg_type == MSG_TYPE_ROACHES_DISCONNECT){
                 printf("You have been disconnected\n");
                 zmq_close(socket);
                 zmq_close(context);
                 printf("Bye\n");
                 exit(1);
-            }      
+            }    
 
         }
-            
+        if(flag_exit){
+            disconnect_msg.msg_type = MSG_TYPE_ROACHES_DISCONNECT;
+            disconnect_msg.index = ACK_server.index;
+            zmq_send(socket, &disconnect_msg, sizeof(message_t), 0);
+            zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
+            printf("You have been disconnected\n");
+            zmq_close(socket);
+            zmq_close(context);
+            printf("Bye\n");
+            exit(1);
+        }
     }while (!flag_exit);
-   
-   // Adicione uma pequena pausa antes de encerrar
-    sleep(1);
 
     endwin();			/* End curses mode		  */
 

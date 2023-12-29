@@ -78,7 +78,7 @@ int main()
                 handleLizardMovement(my_win, &headLizardList, &headRoachList, &m, socket, &headWaspList);
             break;
         
-        case MSG_TYPE_DISCONNECT:
+        case MSG_TYPE_LIZARD_DISCONNECT:
             handleLizardDisconnect(my_win, &headLizardList, &m, socket, &nClients);
             break;
 
@@ -91,6 +91,10 @@ int main()
             direction = m.direction;
             handleRoachMovement(my_win, &headRoachList, &m, direction, socket, headLizardList, headWaspList);
             break;
+            
+        case MSG_TYPE_ROACHES_DISCONNECT:
+            handleRoachDisconnect(my_win, &headRoachList, &m, socket, &NroachesTotal);
+            break;
 
         case MSG_TYPE_WASPS_CONNECT:
             id_wasp++;
@@ -102,10 +106,14 @@ int main()
             handleWaspMovement(my_win, &headWaspList, &m, direction, socket, &headRoachList, headLizardList);
             break;
 
+        case MSG_TYPE_WASPS_DISCONNECT:
+            handleWaspDisconnect(my_win, &headWaspList, &m, socket, &NwaspsTotal);
+            break;
+
         default:
             break;
         }
-        if(m.msg_type != MSG_TYPE_DISCONNECT){
+        if(m.msg_type != MSG_TYPE_LIZARD_DISCONNECT && m.msg_type != MSG_TYPE_ROACHES_DISCONNECT && m.msg_type != MSG_TYPE_WASPS_DISCONNECT){
             m.msg_type = MSG_TYPE_ACK;
             updateRoachesVisibility(&headRoachList, id_roach);
             updateAndRenderLizardsTails(my_win, headLizardList);

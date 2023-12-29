@@ -48,7 +48,7 @@ void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *
     }
 }
 
-int WaspStingsLizard(LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp){
+int WaspStingsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp){
     int stingOccurred = 0;
 
     // Wasp moved, check if it stings a lizard
@@ -72,6 +72,9 @@ int WaspStingsLizard(LizardClient **headLizardList, LizardClient *currentLizard,
         while(waspClient != NULL){
             for(int i = 0; i < waspClient->num_wasps; i++){
                 if(comparePosition(nextPositionLizard, waspClient->wasps[i].position)){
+                    cleanLizard(my_win, currentLizard);
+                    lizardTailOrientation(currentLizard);
+                    renderLizardhead(my_win, currentLizard);
                     currentLizard->score -= 10;
                     stingOccurred = 1;
                 }

@@ -77,5 +77,6 @@ void freeRoachList(RoachClient **headRoachList);
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  */
 void printRoachList(RoachClient *headRoachList);
+void removeRoachClient(RoachClient **headRoachList, int id_roach);
 
 #endif /* ROACHE_LIST_H */

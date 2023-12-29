@@ -9,7 +9,7 @@
 #include "roach_funcs.h"
 
 void forceRoachDisconnect(message_t *m, void *socket){
-    m->msg_type = MSG_TYPE_DISCONNECT;
+    m->msg_type = MSG_TYPE_ROACHES_DISCONNECT;
     zmq_send(socket, &m, sizeof(*m), 0);
 }
 void new_position_roaches(RoachClient *roachClient, int id){
@@ -46,6 +46,13 @@ void cleanRoach(WINDOW *my_win, RoachClient *roachClient, int id){
     wrefresh(my_win);
 }
 
+void cleanRoachClient(WINDOW *my_win, RoachClient *roachClient){
+    for (int i = 0; i < roachClient->num_roaches; i++)
+    {
+        cleanRoach(my_win, roachClient, i);
+    }
+}
+
 
 
 void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t *m, void *socket, int *NroachesTotal, int id_roach){
@@ -59,7 +66,6 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t
         m->msg_type = MSG_TYPE_ACK;
         addRoachClient(headRoachList, m->score_roaches, m->N_roaches, id_roach);
         RoachClient *roachClient = findRoachClient(headRoachList, id_roach);
-
         for (int i = 0; i < roachClient->num_roaches; i++)
         {
             wmove(my_win, roachClient->roaches[i].position.position_x, roachClient->roaches[i].position.position_y);
@@ -91,6 +97,24 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t 
     }
 }
 
+void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, message_t *m, void *socket, int *NroachesTotal){
+    int id_roach = m->index;
+    
+    // Find the roach client that is disconnecting
+    RoachClient *roachClient = findRoachClient(headRoachList, id_roach);
+    if(roachClient == NULL){
+        forceRoachDisconnect(m, socket);
+        return;
+    } else {
+        cleanRoachClient(my_win, roachClient);
+        // Update the total number of roaches
+        *NroachesTotal -= roachClient->num_roaches;
+        m->msg_type = MSG_TYPE_ACK;
+        zmq_send(socket, m, sizeof(*m), 0);
+        // Remove the roach client from the list
+        removeRoachClient(headRoachList, id_roach);
+    }
+}
 
 
 void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *socket){
@@ -104,7 +128,7 @@ void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *soc
     }
     freeRoachList(headRoachList);
     message_t m;
-    m.msg_type = MSG_TYPE_DISCONNECT;
+    m.msg_type = MSG_TYPE_ROACHES_DISCONNECT;
     zmq_send(socket, &m, sizeof(m), 0);
 }
 
