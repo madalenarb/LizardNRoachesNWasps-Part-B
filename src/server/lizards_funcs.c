@@ -224,15 +224,21 @@ void handleLizardConnect(WINDOW *my_win, LizardClient **headLizardList, message_
     }
 }
 
-void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket){
+void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket, WaspClient **headWaspList){
     LizardClient *currentLizard = findLizardClient(*headLizardList, m->ch);
+    int flag = 0;
+    int stingOccurred = 0;
     if(m->password != currentLizard->password){
         forceLizardDisconnect(m, socket);
     } else {
         if(currentLizard != NULL){
             currentLizard->direction = m->direction;
             m->msg_type = MSG_TYPE_ACK;
-            lizardHitsLizard(my_win, headLizardList, currentLizard);
+            stingOccurred = WaspStingsLizard(my_win, headLizardList, currentLizard, headWaspList, NULL);
+            flag = lizardHitsLizard(my_win, headLizardList, currentLizard);
+            if(flag == 0 && stingOccurred == 0){
+                updateAndRenderOneLizard(my_win, currentLizard);
+            }
             lizardEatsRoach(my_win, headRoachList, currentLizard);
             m->direction = currentLizard->direction;
             m->score_lizard = currentLizard->score;

@@ -72,7 +72,7 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t
 
 
 
-void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t *m, direction_t direction,void *socket, LizardClient *headLizardList)
+void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t *m, direction_t direction,void *socket, LizardClient *headLizardList, WaspClient *headWaspList)
 {
     int id_roach = m->index;
     int roach = m->roach_index;
@@ -84,7 +84,7 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t 
         roachClient->roaches[roach].direction = direction;
         m->msg_type = MSG_TYPE_ACK;
         if(roachClient->roaches[roach].on_board == 1){
-            renderRoach(my_win, roachClient, roach, headLizardList);
+            renderRoach(my_win, roachClient, roach, headLizardList, headWaspList);
         }
         
         zmq_send(socket, m, sizeof(*m), 0);
@@ -92,3 +92,32 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t 
 }
 
 
+
+void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *socket){
+    RoachClient *currentRoach = *headRoachList;
+    while(currentRoach != NULL){
+        for (int i = 0; i < currentRoach->num_roaches; i++)
+        {
+            cleanRoach(my_win, currentRoach, i);
+        }
+        currentRoach = currentRoach->next;
+    }
+    freeRoachList(headRoachList);
+    message_t m;
+    m.msg_type = MSG_TYPE_DISCONNECT;
+    zmq_send(socket, &m, sizeof(m), 0);
+}
+
+int checkPositionforRoach(RoachClient **headRoachList, position_t position){
+    RoachClient *currentRoach = *headRoachList;
+    while(currentRoach != NULL){
+        for (int i = 0; i < currentRoach->num_roaches; i++)
+        {
+            if(comparePosition(currentRoach->roaches[i].position, position)){
+                return 1;
+            }
+        }
+        currentRoach = currentRoach->next;
+    }
+    return 0;
+}

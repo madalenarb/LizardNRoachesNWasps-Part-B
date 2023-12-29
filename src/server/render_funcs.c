@@ -80,6 +80,7 @@ void updateAndRenderLizardsTails(WINDOW *my_win, LizardClient *headLizardList){
 void updateAndRenderOneLizard(WINDOW *my_win, LizardClient *otherLizard){
     //Update lizard position
     cleanLizard(my_win, otherLizard);
+
     new_position(otherLizard);
 
     //Render updated lizard
@@ -87,13 +88,33 @@ void updateAndRenderOneLizard(WINDOW *my_win, LizardClient *otherLizard){
     renderLizardTail(my_win, otherLizard);
 }
 
-void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList){
+void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList, WaspClient *headWaspList){
     wmove(my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
     waddch(my_win, ' ');
     wrefresh(my_win);
     position_t nextPosition = auxNextPosition(roachClient->roaches[id].position, roachClient->roaches[id].direction);
-    int occupied_position = checkPositionforLizard(headLizardList, nextPosition);
-    if(occupied_position == 0){
+
+    int occupied_position = 0;
+    int occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
+    int occupied_position_wasps = checkPositionforWasp(headWaspList, nextPosition);
+    if(occupied_position_wasps == 1 || occupied_position_lizard == 1){
+        occupied_position = 1;
+    }
+    // Check if the next position is occupied by a lizard
+    while(occupied_position == 1){
+        roachClient->roaches[id].direction = (direction_t) (rand() % 4);
+        nextPosition = auxNextPosition(roachClient->roaches[id].position, roachClient->roaches[id].direction);
+        occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
+        
+        if(occupied_position_wasps == 1 || occupied_position_lizard == 1){
+            occupied_position = 1;
+        } else if(occupied_position_wasps == 0 && occupied_position_lizard == 0){
+            occupied_position = 0;
+        }
+    }
+
+    // If the next position is not occupied, move the roach to the next position
+    if(occupied_position_lizard == 0){
         new_position_roaches(roachClient, id);
     }
 
@@ -116,17 +137,22 @@ void updateAndRenderRoaches(WINDOW *my_win, RoachClient *headRoachList){
     wrefresh(my_win);
 }
 
-void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, LizardClient *headLizardList) {
+void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList){
     
     cleanWasp(my_win, waspClient, waspIndex);
 
-    // Calcula a próxima posição com base na direção atual
+    // Calculate the next position of the wasp
     position_t nextPosition = auxNextPosition(waspClient->wasps[waspIndex].position, waspClient->wasps[waspIndex].direction);
 
-    // Verifica se a próxima posição está ocupada por uma lagartixa
-    int occupied_position = checkPositionforLizard(headLizardList, nextPosition);
-
-    // Se a próxima posição não estiver ocupada, move a vespa
+    // Check if the next position is occupied by a lizard
+    int occupied_position = checkPositionforRoach(headRoachList, nextPosition);
+    
+    while(occupied_position == 1){
+        waspClient->wasps[waspIndex].direction = (direction_t) (rand() % 4);
+        nextPosition = auxNextPosition(waspClient->wasps[waspIndex].position, waspClient->wasps[waspIndex].direction);
+        occupied_position = checkPositionforRoach(headRoachList, nextPosition);
+    }
+    // If the next position is not occupied, move the wasp to the next position
     if(occupied_position == 0){
         new_position_wasps(waspClient, waspIndex);  
     }
@@ -136,12 +162,14 @@ void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, LizardCli
     wrefresh(my_win);
 }
 
-void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList, LizardClient *headLizardList) {
+void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList){
     WaspClient *currentWaspClient = headWaspList;
     while(currentWaspClient != NULL){
         for(int i = 0; i < currentWaspClient->num_wasps; i++){
             if(currentWaspClient->wasps[i].on_board == 1){
-                renderWasp(my_win, currentWaspClient, i, headLizardList);
+                wmove(my_win, currentWaspClient->wasps[i].position.position_x, currentWaspClient->wasps[i].position.position_y);
+                waddch(my_win, '#'); 
+                wrefresh(my_win);
             }
         }
         currentWaspClient = currentWaspClient->next;

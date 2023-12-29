@@ -73,6 +73,32 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t *m, direction_t direction, void *socket, LizardClient *headLizardList);
+void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t *m, direction_t direction,void *socket, LizardClient *headLizardList, WaspClient *headWaspList);
+/**
+ * @brief Manages the disconnection of a roach client from the game.
+ *
+ * Handles the disconnection of a roach client, removing it from the game environment and 
+ * updating the game state accordingly.
+ *
+ * @param my_win Pointer to the game window for rendering.
+ * @param headRoachList Pointer to the head of the linked list of roach clients.
+ * @param m Pointer to the message structure indicating disconnection.
+ * @param socket Pointer to the communication socket.
+ * @param NroachesTotal Pointer to the total number of roaches in the game.
+ */
+void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *socket);
+
+/**
+ * @brief Renders the head of a roach client.
+ * 
+ * Displays the head of a roach client at its current position on the game window.
+ * 
+ * @param my_win Pointer to the game window.
+ * @param roachClient Pointer to the RoachClient structure.
+ * @param id Identifier of the roach within the RoachClient.
+ * 
+ * @return 0 if the roach is not on the board, 1 otherwise.
+ */
+int checkPositionforRoach(RoachClient **headRoachList, position_t position);
 
 #endif // ROACH_FUNCS_H

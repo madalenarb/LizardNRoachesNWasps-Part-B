@@ -14,6 +14,7 @@
 
 #include "utils.h"
 #include "lizards_funcs.h"
+#include "wasp_funcs.h"
 
 /*
 #include <ncurses.h>
@@ -35,6 +36,8 @@ int main()
     int direction = 0;
     int NroachesTotal=0; 
     int nClients=0;
+    int id_wasp = 0;
+    int NwaspsTotal = 0;
     // int id = 0;
 	
     void *context = zmq_ctx_new();
@@ -53,6 +56,9 @@ int main()
     //Linked list to manage Roach clients
     RoachClient* headRoachList = NULL;
 
+    // Linked List to manage Wasp clients
+    WaspClient* headWaspList = NULL;
+
 
     WINDOW *my_win;
     setupWindows(&my_win);
@@ -69,7 +75,7 @@ int main()
         
         case MSG_TYPE_LIZARD_MOVEMENT:
             if(headLizardList != NULL)
-                handleLizardMovement(my_win, &headLizardList, &headRoachList, &m, socket);
+                handleLizardMovement(my_win, &headLizardList, &headRoachList, &m, socket, &headWaspList);
             break;
         
         case MSG_TYPE_DISCONNECT:
@@ -83,7 +89,17 @@ int main()
 
         case MSG_TYPE_ROACHES_MOVEMENT:
             direction = m.direction;
-            handleRoachMovement(my_win, &headRoachList, &m, direction, socket, headLizardList);
+            handleRoachMovement(my_win, &headRoachList, &m, direction, socket, headLizardList, headWaspList);
+            break;
+
+        case MSG_TYPE_WASPS_CONNECT:
+            id_wasp++;
+            handleWaspsConnect(my_win, &headWaspList, &m, socket, &NwaspsTotal, id_wasp);
+            break;
+
+        case MSG_TYPE_WASPS_MOVEMENT:
+            direction = m.direction;
+            handleWaspMovement(my_win, &headWaspList, &m, direction, socket, &headRoachList);
             break;
 
         default:
@@ -95,16 +111,18 @@ int main()
             updateAndRenderLizardsTails(my_win, headLizardList);
             updateAndRenderLizardsHeads(my_win, headLizardList);
             updateAndRenderRoaches(my_win, headRoachList);
+            updateAndRenderWasps(my_win, headWaspList);
         } else {
             zmq_send(socket, &m, sizeof(m), 0);
         }
 	    handleDisplayUpdate(socket_display, headLizardList, headRoachList);
     } while (!flag_exit);
   	endwin();			/* End curses mode		  */
+    zmq_close(socket_display);
+    zmq_ctx_destroy(context);
     printf("Bye\n");
     disconnectAllLizards(&headLizardList, socket);
-    zmq_close(socket_display);
     zmq_close(socket);
-    zmq_ctx_destroy(context);
+
 	return 0;
 }

@@ -63,7 +63,7 @@ void handleLizardConnect(WINDOW *my_win, LizardClient **headLizardList, message_
  * @param m Pointer to the message containing movement information.
  * @param socket Pointer to the communication socket.
  */
-void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket);
+void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket, WaspClient **headWaspList);
 
 /**
  * @brief Manages the disconnection of a lizard from the game.

@@ -16,6 +16,7 @@
 #include "utils.h"
 #include "wasp_list.h"
 #include "lizards_funcs.h"
+#include "events.h"
 
 /**
  * @brief Forces the disconnection of a wasp client.
@@ -74,6 +75,29 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, LizardClient *headLizardList);
+void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList);
+
+/**
+ * @brief Disconnects all wasp clients at the end of the game or during shutdown.
+ * 
+ * Ensures a clean and orderly disconnection of all wasp clients from the game,
+ * typically used when shutting down the server or ending the game.
+ *
+ * @param my_win Pointer to the game window.
+ * @param headWaspList Pointer to the head of the linked list of wasp clients.
+ * @param NwaspsTotal Pointer to the total number of wasps in the game.
+ */
+void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTotal);
+
+/**
+ * @brief Checks if a wasp is in a given position.
+ *
+ * Iterates through the linked list of wasp clients and checks if any wasp is in the given position.
+ *
+ * @param headWaspList Pointer to the head of the linked list of wasp clients.
+ * @param position Position to check.
+ * @return 1 if a wasp is in the given position, 0 otherwise.
+ */
+int checkPositionforWasp(WaspClient *headWaspList, position_t position);
 
 #endif // ROACH_FUNCS_H

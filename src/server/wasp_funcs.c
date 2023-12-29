@@ -70,30 +70,54 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
     }
 }
 
+void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList, LizardClient *headLizardList){
+    int id_wasp = m->index;  // Identification of the wasp client
+    int wasp = m->wasp_index;  // Index of the wasp within the WaspClient
+    int stingOccurred = 0;  // Flag to indicate if a sting occurred
 
-
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, LizardClient *headLizardList) {
-    int id_wasp = m->index;  // Identificação do cliente vespa
-    int wasp = m->wasp_index;  // Index da vespa específica
-
-    WaspClient *waspClient = findWaspClient(headWaspList, id_wasp);  // Localiza o cliente vespa na lista
+    WaspClient *waspClient = findWaspClient(headWaspList, id_wasp);  // Localize the wasp client
 
     if(waspClient == NULL){
-        forceWaspDisconnect(m, socket);  // Se o cliente não for encontrado, desconecta
-    } else {
-        // Define a direção do movimento da vespa
+        forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
+    } else {        
+        // Define the direction of the wasp
+        stingOccurred = WaspStingsLizard(my_win, headLizardList, NULL, headWaspList, wasp);  // Check if the wasp stings a lizard
+
         waspClient->wasps[wasp].direction = direction;
         m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Atualiza o tipo de mensagem para movimento de vespa
         
         // Verifica se a vespa está no tabuleiro antes de tentar movê-la
-        if(waspClient->wasps[wasp].on_board == 1){
-            renderWasp(my_win, waspClient, wasp, headLizardList);  // Renderiza o movimento da vespa
+        if(waspClient->wasps[wasp].on_board == 1 && stingOccurred == 0){
+            renderWasp(my_win, waspClient, wasp, headRoachList);  // Render the wasp on the game window
         }
+
         
         zmq_send(socket, m, sizeof(*m), 0);  // Envia a mensagem de movimento para o servidor
     }
 }
 
+void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTotal){
+    WaspClient *currentWaspClient = *headWaspList;
+    while(currentWaspClient != NULL){
+        for (int i = 0; i < currentWaspClient->num_wasps; i++)
+        {
+            cleanWasp(my_win, currentWaspClient, i);
+        }
+        currentWaspClient = currentWaspClient->next;
+    }
+    freeWaspList(headWaspList);
+    *NwaspsTotal = 0;
+}
 
-
-
+int checkPositionforWasp(WaspClient *headWaspList, position_t position){
+    WaspClient *currentWaspClient = headWaspList;
+    while(currentWaspClient != NULL){
+        for(int i = 0; i < currentWaspClient->num_wasps; i++){
+            if(comparePosition(currentWaspClient->wasps[i].position, position)){
+                return 1;
+            }
+        }
+        currentWaspClient = currentWaspClient->next;
+    }
+    return 0;
+}

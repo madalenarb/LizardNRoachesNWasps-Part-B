@@ -80,7 +80,7 @@ int checkPositionforLizard(LizardClient *headLizardList, position_t position);
  * @param id The ID of the roach to be rendered.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList);
+void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList, WaspClient *headWaspList);
 
 /**
  * @brief Updates and renders all roaches on the game window.
@@ -122,16 +122,6 @@ void renderLizardhead(WINDOW *my_win, LizardClient *otherLizard);
  */
 void renderLizardTail(WINDOW *my_win, LizardClient *otherLizard);
 
-/**
- * @brief Handles interactions when a lizard hits another lizard.
- *
- * Manages the scenario where one lizard runs into another, handling score adjustments and game logic.
- *
- * @param my_win Pointer to the game window.
- * @param headLizardList Pointer to the head of the linked list of lizard clients.
- * @param currentLizard Pointer to the LizardClient structure involved in the collision.
- */
-void lizardHitsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard);
 
 /**
  * @brief Handles interactions when a lizard eats a roach.
@@ -165,7 +155,7 @@ void updateRoachesVisibility(RoachClient **headRoachList, int id_roach);
  * @param id The ID of the wasp to be rendered.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void renderWasp(WINDOW *my_win, WaspClient *waspClient, int id, LizardClient *headLizardList);
+void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList);
 
 /**
  * @brief Updates and renders all wasps on the game window.
@@ -176,6 +166,5 @@ void renderWasp(WINDOW *my_win, WaspClient *waspClient, int id, LizardClient *he
  * @param headWaspsList Pointer to the head of the linked list of wasp clients.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList, LizardClient *headLizardList);
-
+void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList);
 #endif // RENDER_FUNCS_H

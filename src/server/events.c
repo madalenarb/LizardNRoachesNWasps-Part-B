@@ -7,7 +7,7 @@
 
 #include "events.h"
 
-void lizardHitsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard){
+int lizardHitsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard){
     LizardClient *otherLizard = *headLizardList;
     position_t nextPosition1 = auxNextPosition(currentLizard->position, currentLizard->direction);
     int new_score = 0;
@@ -28,9 +28,7 @@ void lizardHitsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClien
         }
         otherLizard = otherLizard->next;
     }
-    if(flag == 0){
-        updateAndRenderOneLizard(my_win, currentLizard);
-    }
+    return flag;
 }
 
 
@@ -48,4 +46,40 @@ void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *
         }
         roachClient = roachClient->next;
     }
+}
+
+int WaspStingsLizard(WINDOW *my_win, LizardClient **headLizardList, LizardClient *currentLizard, WaspClient **headWaspList, WaspClient *currentWasp){
+    int stingOccurred = 0;
+
+    // Wasp moved, check if it stings a lizard
+    if(currentWasp != NULL){
+        for(int i = 0; i < currentWasp->num_wasps; i++){
+            position_t nextPositionWasp = auxNextPosition(currentWasp->wasps[i].position, currentWasp->wasps[i].direction);
+            LizardClient *lizardClient = *headLizardList;
+            while(lizardClient != NULL){
+                if(comparePosition(nextPositionWasp, lizardClient->position)){
+                    lizardClient->score -= 10;
+                    stingOccurred = 1;
+                }
+                lizardClient = lizardClient->next;
+            }
+        }
+    } else if(currentLizard != NULL){
+        // Lizard moved, check if it stings a lizard
+        position_t nextPositionLizard = auxNextPosition(currentLizard->position, currentLizard->direction);
+        WaspClient *waspClient = *headWaspList;
+        while(waspClient != NULL){
+            for(int i = 0; i < waspClient->num_wasps; i++){
+                if(comparePosition(nextPositionLizard, waspClient->wasps[i].position)){
+                    currentLizard->score -= 10;
+                    cleanLizard(my_win, currentLizard);
+                    lizardTailOrientation(currentLizard);
+                    renderLizardTail(my_win, currentLizard);
+                    stingOccurred = 1;
+                }
+            }
+            waspClient = waspClient->next;
+        }
+    }
+    return stingOccurred;
 }
