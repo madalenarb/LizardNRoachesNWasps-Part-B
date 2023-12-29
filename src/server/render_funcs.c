@@ -105,7 +105,8 @@ void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient 
         roachClient->roaches[id].direction = (direction_t) (rand() % 4);
         nextPosition = auxNextPosition(roachClient->roaches[id].position, roachClient->roaches[id].direction);
         occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
-        
+        occupied_position_wasps = checkPositionforWasp(headWaspList, nextPosition);
+                
         if(occupied_position_wasps == 1 || occupied_position_lizard == 1){
             occupied_position = 1;
         } else if(occupied_position_wasps == 0 && occupied_position_lizard == 0){
@@ -153,9 +154,7 @@ void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClie
         occupied_position = checkPositionforRoach(headRoachList, nextPosition);
     }
     // If the next position is not occupied, move the wasp to the next position
-    if(occupied_position == 0){
-        new_position_wasps(waspClient, waspIndex);  
-    }
+    new_position_wasps(waspClient, waspIndex);  
 
     wmove(my_win, waspClient->wasps[waspIndex].position.position_x, waspClient->wasps[waspIndex].position.position_y);
     waddch(my_win, '#');  // Representa vespas com '#'
