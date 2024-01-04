@@ -112,7 +112,6 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNro
         // Prepare ACK message
         LizardsNroachestypes__GameMessage ACK_msg = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
         ACK_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
-
         // Serialize and send ACK message
         size_t len = lizards_nroachestypes__game_message__get_packed_size(&ACK_msg);
         void *buf = malloc(len);

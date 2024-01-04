@@ -21,12 +21,11 @@ int main() {
         printf("Error connecting to server\n");
         exit(1);
     }
-    printf("Connected to server\n");
 
     LizardsNroachestypes__GameMessage roach_msg;
     lizards_nroachestypes__game_message__init(&roach_msg);
     roach_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_CONNECT;    
-    int n_roaches = rand() % 10 + 1;  // Número aleatório de roaches entre 1 e 10
+    int n_roaches = rand() % 10 + 1;  // Random number of roaches between 1 and 10
 
     printf("N_roaches: %d\n", n_roaches);
     roach_msg.score_roaches = malloc(roach_msg.n_roaches * sizeof(int));

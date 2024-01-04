@@ -28,7 +28,7 @@
  * @param m Pointer to the message structure to be sent.
  * @param socket Pointer to the ZeroMQ socket used for communication.
  */
-void forceWaspDisconnect(message_t *m, void *socket);
+void forceWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket);
 
 /**
  * @brief Updates the position of a wasp based on its direction.
@@ -63,7 +63,7 @@ void cleanWasp(WINDOW *my_win, WaspClient *waspClient, int id);
  * @param NroachesTotal Pointer to the total number of roaches in the game.
  * @param id_roach Identifier of the new wasp client.
  */
-void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NroachesTotal, int id_wasp);
+void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal, int id_wasp);
 
 /**
  * @brief Manages the movement of a roach client in the game.
@@ -77,7 +77,7 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList, LizardClient *headLizardList);
+void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, RoachClient **headRoachList, LizardClient *headLizardList);
 
 /**
  * @brief Handles the disconnection of a wasp client from the server.
@@ -90,7 +90,7 @@ void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param NwaspsTotal Pointer to the total number of wasps in the game.
  */
-void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NwaspsTotal);
+void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NwaspsTotal);
 
 /**
  * @brief Disconnects all wasp clients at the end of the game or during shutdown.

@@ -32,8 +32,8 @@ int main()
 {
     initializeTimer();
     signal(SIGINT, handle_signal);
-    message_t m;
     int id_roach=0;
+    int id_wasp=0;
     int NroachesTotal=0; 
     int nClients=0;
 
@@ -94,13 +94,14 @@ int main()
                 break;
 
             case MSG_TYPE_LIZARD_DISCONNECT:
+                msg_type = -1;
                 handleLizardDisconnect(my_win, &headLizardList, &lizard_msg, socket_lizard, &nClients);
                 break;
             }
         }
 
         // Process Roach and Wasp messages
-        if (items[1].revents & ZMQ_POLLIN) {
+        if (items[1].revents & ZMQ_POLLIN) {            
             zmq_msg_t zmq_msg;
             zmq_msg_init(&zmq_msg);
             int msg_len = zmq_recvmsg(socket_roach_wasp, &zmq_msg, 0);
@@ -121,7 +122,25 @@ int main()
 
                 case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT:
                     // Handle roaches disconnect
+                    msg_type = -1;
                     handleRoachDisconnect(my_win, &headRoachList, received_msg, socket_roach_wasp, &NroachesTotal);
+                    break;
+
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_CONNECT:
+                    // Handle wasps connect
+                    id_wasp++;
+                    handleWaspsConnect(my_win, &headWaspList, received_msg, socket_roach_wasp, &NroachesTotal, id_wasp);
+                    break;
+
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_MOVEMENT:
+                    // Handle wasps movement
+                    handleWaspMovement(my_win, &headWaspList, received_msg, socket_roach_wasp, &headRoachList, headLizardList);
+                    break;
+
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT:
+                    // Handle wasps disconnect
+                    msg_type = -1;
+                    handleWaspDisconnect(my_win, &headWaspList, received_msg, socket_roach_wasp, &NroachesTotal);
                     break;
 
                 default:
@@ -134,8 +153,7 @@ int main()
 
 
         // Update display
-        if(m.msg_type != MSG_TYPE_LIZARD_DISCONNECT && m.msg_type != MSG_TYPE_ROACHES_DISCONNECT && m.msg_type != MSG_TYPE_WASPS_DISCONNECT){
-            m.msg_type = MSG_TYPE_ACK;
+        if(msg_type != -1){
             updateRoachesVisibility(&headRoachList, id_roach);
             updateAndRenderLizardsTails(my_win, headLizardList);
             updateAndRenderLizardsHeads(my_win, headLizardList);

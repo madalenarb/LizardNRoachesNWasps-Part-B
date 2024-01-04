@@ -8,9 +8,13 @@
 
 #include "wasp_funcs.h"
 
-void forceWaspDisconnect(message_t *m, void *socket){
+void forceWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
     m->msg_type = MSG_TYPE_WASPS_DISCONNECT;
-    zmq_send(socket, &m, sizeof(*m), 0);
+    size_t len = lizards_nroachestypes__game_message__pack(m, NULL);
+    void *buf = malloc(len);
+    lizards_nroachestypes__game_message__pack(m, buf);
+    zmq_send(socket, buf, len, 0);
+    free(buf);
 }
 
 void new_position_wasps(WaspClient *waspClient, int id){
@@ -54,16 +58,14 @@ void cleanWaspClient(WINDOW *my_win, WaspClient *waspClient){
     }
 }
 
-void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NroachesTotal, int id_wasp){
-    m->index = id_wasp;  
-    *NroachesTotal += m->N_wasps; //temos que mudar o nome 
-    if(*NroachesTotal >= MAX_ROACHES){  // Alterar depois o nome do MAX
-        forceWaspDisconnect(m, socket);  // Altere para forceWaspDisconnect
-    } 
-    else
-    {
-        m->msg_type = MSG_TYPE_ACK;
-        addWaspClient(headWaspList, m->N_wasps, id_wasp);  // Altere para addWaspClient e ajuste os parâmetros
+void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NWaspsTotal, int id_wasp){
+    m->index = id_wasp; 
+    *NWaspsTotal += m->n_wasps;  // Update the total number of wasps
+    if(*NWaspsTotal > MAX_WASPS){
+        forceWaspDisconnect(m, socket);  // If the total number of wasps exceeds the maximum, disconnect the wasp client
+    } else {
+        m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
+        addWaspClient(headWaspList, m->n_wasps, id_wasp);  // Altere para addWaspClient e ajuste os parâmetros
         WaspClient *waspClient = findWaspClient(headWaspList, id_wasp);  // Altere para findWaspClient
 
         // Adicione todas as vespas ao campo de jogo
@@ -73,11 +75,22 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
             waddch(my_win, '#');  // Representa vespas com '#'
         }
         wrefresh(my_win);
-        zmq_send(socket, m, sizeof(*m), 0);
+
+        // Serialize the message
+        LizardsNroachestypes__GameMessage ack_msg;
+        lizards_nroachestypes__game_message__init(&ack_msg);
+        ack_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
+        ack_msg.has_index = true;
+        ack_msg.index = id_wasp;
+        size_t len = lizards_nroachestypes__game_message__get_packed_size(&ack_msg);
+        void *buf = malloc(len);
+        lizards_nroachestypes__game_message__pack(&ack_msg, buf);
+        zmq_send(socket, buf, len, 0);
+        free(buf);
     }
 }
 
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m, direction_t direction, void *socket, RoachClient **headRoachList, LizardClient *headLizardList){
+void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, RoachClient **headRoachList, LizardClient *headLizardList){
     int id_wasp = m->index;  // Identification of the wasp client
     int wasp = m->wasp_index;  // Index of the wasp within the WaspClient
     int stingOccurred = 0;  // Flag to indicate if a sting occurred
@@ -90,16 +103,23 @@ void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, message_t *m,
         // Define the direction of the wasp
         stingOccurred = WaspStingsLizard(my_win, &headLizardList, NULL, headWaspList, waspClient);
 
-        waspClient->wasps[wasp].direction = direction;
-        m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Atualiza o tipo de mensagem para movimento de vespa
+        waspClient->wasps[wasp].direction = m->direction;  // Update the direction of the wasp
+        m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Update the message type
         
-        // Verifica se a vespa está no tabuleiro antes de tentar movê-la
+        // Verify if the next position is occupied by a lizard
         if(waspClient->wasps[wasp].on_board == 1 && stingOccurred == 0){
-            renderWasp(my_win, waspClient, wasp, headRoachList, headLizardList);  // Renderiza a vespa
+            renderWasp(my_win, waspClient, wasp, headRoachList, headLizardList);  // Render the wasp in the next position
         }
 
-        
-        zmq_send(socket, m, sizeof(*m), 0);  // Envia a mensagem de movimento para o servidor
+        // Serialize the message
+        LizardsNroachestypes__GameMessage ack_msg;  
+        lizards_nroachestypes__game_message__init(&ack_msg);
+        ack_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
+        size_t len = lizards_nroachestypes__game_message__get_packed_size(&ack_msg);
+        void *buf = malloc(len);
+        lizards_nroachestypes__game_message__pack(&ack_msg, buf);
+        zmq_send(socket, buf, len, 0);
+        free(buf);        
     }
 }
 
@@ -116,7 +136,7 @@ void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTo
     *NwaspsTotal = 0;
 }
 
-void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, message_t *m, void *socket, int *NwaspsTotal){
+void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NwaspsTotal){
     int id_wasp = m->index;
     WaspClient *waspClient = findWaspClient(headWaspList, id_wasp);
     if(waspClient == NULL){
@@ -125,8 +145,15 @@ void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, message_t *
     } else {
         // Update the total number of wasps
         *NwaspsTotal -= waspClient->num_wasps;
-        m->msg_type = MSG_TYPE_ACK;
-        zmq_send(socket, m, sizeof(*m), 0);
+        LizardsNroachestypes__GameMessage ack_msg;
+        lizards_nroachestypes__game_message__init(&ack_msg);
+        ack_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
+        
+        size_t len = lizards_nroachestypes__game_message__get_packed_size(&ack_msg);
+        void *buf = malloc(len);
+        lizards_nroachestypes__game_message__pack(&ack_msg, buf);
+        zmq_send(socket, buf, len, 0);
+        free(buf);
         cleanWaspClient(my_win, waspClient);
         // Remove the wasp client from the list
         removeWaspClient(headWaspList, id_wasp);

@@ -12,44 +12,57 @@
 int main() {
     // Signal handler for Ctrl+C
     signal(SIGINT, handle_signal);
-    message_t ACK_server, disconnect_msg;
 
     int n = 0;
     void *context = zmq_ctx_new();
     void *socket = zmq_socket(context, ZMQ_REQ);
-    zmq_connect(socket, "tcp://localhost:5555");
-
-    LizardsNroachestypes__GameMessage m = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
-    m.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_CONNECT;
-    m.n_wasps = rand() % 10 + 1;  // Random number of wasps between 1 and 10
-
-    // Serialize the message
-    size_t len = lizards_nroachestypes__game_message__get_packed_size(&m);
-    void *buf = malloc(len);
-    lizards_nroachestypes__game_message__pack(&m, buf);
-
-    // Send serialized message to server
-    zmq_send(socket, buf, len, 0);
-    printf("Sent %d wasps\n", m.n_wasps);
-    free(buf);
-
-    zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
-    printf("ACK_server.msg_type: %d\n", ACK_server.msg_type);
-    printf("client index: %d\n", ACK_server.index);
-    if(ACK_server.msg_type == MSG_TYPE_WASPS_DISCONNECT){
-        zmq_close(socket);
-        zmq_ctx_destroy(context);
-        printf("Bye\n");
+    int rc = zmq_connect(socket, "tcp://localhost:5557");
+    if(rc != 0){
+        printf("Error connecting to server\n");
         exit(1);
     }
 
-    m.wasp_index = ACK_server.wasp_index;   
+    LizardsNroachestypes__GameMessage wasp_msg;
+    lizards_nroachestypes__game_message__init(&wasp_msg);
+    wasp_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_CONNECT;
+    wasp_msg.has_n_wasps = true;
+    int n_wasps = rand() % 10 + 1;  // Random number of wasps between 1 and 10
+    
+    wasp_msg.n_wasps = n_wasps;
+
+    // Serialize the message
+    size_t size_msg = lizards_nroachestypes__game_message__get_packed_size(&wasp_msg);
+    void *buf = malloc(size_msg);
+    lizards_nroachestypes__game_message__pack(&wasp_msg, buf);
+
+    // Send serialized message to server
+    zmq_send(socket, buf, size_msg, 0);
+
+    zmq_msg_t ack;
+    zmq_msg_init(&ack);
+    zmq_msg_recv(&ack, socket, 0);
+    LizardsNroachestypes__GameMessage *ack_msg = lizards_nroachestypes__game_message__unpack(NULL, zmq_msg_size(&ack), zmq_msg_data(&ack));
+    if(ack_msg == NULL){
+        printf("Error unpacking message1\n");
+        exit(1);
+    }
+    free(buf);
+
+    if(ack_msg->msg_type == LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT){
+        printf("Disconnected from server\n");
+        lizards_nroachestypes__game_message__free_unpacked(ack_msg, NULL);
+        zmq_close(socket);
+        zmq_ctx_destroy(context);
+        exit(1);
+    }
+
+    int index = ack_msg->index;
     direction_t direction;
-    m.index = ACK_server.index;
+    lizards_nroachestypes__game_message__free_unpacked(ack_msg, NULL);
 
     do {
         // Preencher os movimentos aleatórios para cada barata
-        for (int i = 0; i < m.n_wasps; i++) {
+        for (int i = 0; i < n_wasps; i++) {
             // Esperar um tempo aleatório antes do movimento de cada barata
            usleep(rand() % 3000000);  // Esperar até 3 segundos
 
@@ -73,26 +86,47 @@ int main() {
                 break;
             }
 
-            m.index = ACK_server.index;
-            m.wasp_index = i;
-            m.msg_type =MSG_TYPE_WASPS_MOVEMENT;
-            m.direction=direction;
-            printf("wasp client %d\n", m.index);
-            printf("wasp %d moving to %d\n", m.wasp_index, m.direction);
-            zmq_send(socket, &m, sizeof(message_t), 0);
-            zmq_recv(socket, &ACK_server, 10, 0);  
+            LizardsNroachestypes__GameMessage movement_msg;
+            lizards_nroachestypes__game_message__init(&movement_msg);
+            movement_msg.has_index = true;
+            movement_msg.index = index;
+            movement_msg.has_wasp_index = true;
+            movement_msg.wasp_index = i;
+            movement_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_MOVEMENT;
+            movement_msg.has_direction = true;
+            movement_msg.direction = direction;
+            printf("wasp client %d\n", movement_msg.wasp_index);
+            printf("wasp %d moving to %d\n", movement_msg.wasp_index, movement_msg.direction);
+            size_t size_msg = lizards_nroachestypes__game_message__get_packed_size(&movement_msg);
+            void *buf = malloc(size_msg);
+            lizards_nroachestypes__game_message__pack(&movement_msg, buf);
+            zmq_send(socket, buf, size_msg, 0);
+            free(buf);
             
-            if(ACK_server.msg_type == MSG_TYPE_LIZARD_DISCONNECT || flag_exit == 1){
+            zmq_msg_t ack;
+            zmq_msg_init(&ack);
+            zmq_msg_recv(&ack, socket, 0);
+            LizardsNroachestypes__GameMessage *ack_msg = lizards_nroachestypes__game_message__unpack(NULL, zmq_msg_size(&ack), zmq_msg_data(&ack));
+            if(ack_msg == NULL){
+                printf("Error unpacking message\n");
+                exit(1);
+            }
+            if(ack_msg->msg_type == MSG_TYPE_LIZARD_DISCONNECT || flag_exit == 1){
+                LizardsNroachestypes__GameMessage disconnect_msg;
+                lizards_nroachestypes__game_message__init(&disconnect_msg);
                 disconnect_msg.msg_type = MSG_TYPE_WASPS_DISCONNECT;
-                disconnect_msg.index = ACK_server.index;
-                zmq_send(socket, &disconnect_msg, sizeof(message_t), 0);
-                zmq_recv(socket, &ACK_server, sizeof(ACK_server), 0);
+                disconnect_msg.index = index;
+                size_t len = lizards_nroachestypes__game_message__pack(&disconnect_msg, NULL);
+                void *buf = malloc(len);
+                lizards_nroachestypes__game_message__pack(&disconnect_msg, buf);
+                zmq_send(socket, buf, len, 0);
+                free(buf);
                 zmq_close(socket);
                 printf("Bye\n");
                 break;
             }      
         }
-    } while (!flag_exit && ACK_server.msg_type != MSG_TYPE_WASPS_DISCONNECT);
+    } while (!flag_exit && ack_msg->msg_type != MSG_TYPE_LIZARD_DISCONNECT);
    
    // Adicione uma pequena pausa antes de encerrar
 
