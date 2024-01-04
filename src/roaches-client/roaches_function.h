@@ -9,5 +9,6 @@
 #define ROACHES_FUNCTION_H_INCLUDED
 
 #include "../../common/protocol.h" // Common protocol definitions
+#include "../../protos/c_out/protocol.pb-c.c" // Protocol buffer definitions
 
 #endif // ROACHES_FUNCTION_H_INCLUDED

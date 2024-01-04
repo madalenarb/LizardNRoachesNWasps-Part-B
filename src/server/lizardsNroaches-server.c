@@ -27,25 +27,28 @@
 #include <zmq.h>
 */
 
+
 int main()
 {
     initializeTimer();
     signal(SIGINT, handle_signal);
     message_t m;
     int id_roach=0;
-    int direction = 0;
     int NroachesTotal=0; 
     int nClients=0;
-    int id_wasp = 0;
-    int NwaspsTotal = 0;
+
+    int msg_type = 0;
     // int id = 0;
 	
     void *context = zmq_ctx_new();
-    void *socket = zmq_socket(context, ZMQ_REP);
-    int rc = zmq_bind(socket, "tcp://*:5555");
+    void *socket_lizard = zmq_socket(context, ZMQ_REP);
+    int rc = zmq_bind(socket_lizard, "tcp://*:5555");
     assert(rc == 0);
 
-    //acrescentei agora esta parte
+    void *socket_roach_wasp = zmq_socket(context, ZMQ_REP);
+    int rc_roach_wasp = zmq_bind(socket_roach_wasp, "tcp://*:5557");
+    assert(rc_roach_wasp == 0);
+
     void *socket_display = zmq_socket(context, ZMQ_PUB);
     int rc_display = zmq_bind(socket_display, "tcp://*:5556");
     assert(rc_display == 0);
@@ -63,56 +66,74 @@ int main()
     WINDOW *my_win;
     setupWindows(&my_win);
  
+    zmq_pollitem_t items [] = {
+        { socket_lizard, 0, ZMQ_POLLIN, 0 },
+        { socket_roach_wasp, 0, ZMQ_POLLIN, 0 }
+    };
+
     do
     {
         updateTimer();
-        zmq_recv(socket, &m, sizeof(message_t), 0);
-        switch (m.msg_type)
-        {
-        case MSG_TYPE_LIZARD_CONNECT:
-            handleLizardConnect(my_win, &headLizardList, &m, socket, &nClients);
-            break;
-        
-        case MSG_TYPE_LIZARD_MOVEMENT:
-            if(headLizardList != NULL)
-                handleLizardMovement(my_win, &headLizardList, &headRoachList, &m, socket, &headWaspList);
-            break;
-        
-        case MSG_TYPE_LIZARD_DISCONNECT:
-            handleLizardDisconnect(my_win, &headLizardList, &m, socket, &nClients);
-            break;
 
-        case MSG_TYPE_ROACHES_CONNECT:
-            id_roach++;
-            handleRoachesConnect(my_win, &headRoachList, &m, socket, &NroachesTotal, id_roach);
-            break;
+        zmq_poll(items, 2, -1);
 
-        case MSG_TYPE_ROACHES_MOVEMENT:
-            direction = m.direction;
-            handleRoachMovement(my_win, &headRoachList, &m, direction, socket, headLizardList, headWaspList);
-            break;
+        // Process Lizard messages
+        if(items[0].revents & ZMQ_POLLIN){
             
-        case MSG_TYPE_ROACHES_DISCONNECT:
-            handleRoachDisconnect(my_win, &headRoachList, &m, socket, &NroachesTotal);
-            break;
+            message_t lizard_msg;
+            zmq_recv(socket_lizard, &lizard_msg, sizeof(lizard_msg), 0);
+            switch (lizard_msg.msg_type)
+            {
+            case MSG_TYPE_LIZARD_CONNECT:
+                handleLizardConnect(my_win, &headLizardList, &lizard_msg, socket_lizard, &nClients);
+                break;
 
-        case MSG_TYPE_WASPS_CONNECT:
-            id_wasp++;
-            handleWaspsConnect(my_win, &headWaspList, &m, socket, &NwaspsTotal, id_wasp);
-            break;
+            case MSG_TYPE_LIZARD_MOVEMENT:
+                if(headLizardList != NULL)
+                    handleLizardMovement(my_win, &headLizardList, &headRoachList, &lizard_msg, socket_lizard, &headWaspList);
+                break;
 
-        case MSG_TYPE_WASPS_MOVEMENT:
-            direction = m.direction;
-            handleWaspMovement(my_win, &headWaspList, &m, direction, socket, &headRoachList, headLizardList);
-            break;
-
-        case MSG_TYPE_WASPS_DISCONNECT:
-            handleWaspDisconnect(my_win, &headWaspList, &m, socket, &NwaspsTotal);
-            break;
-
-        default:
-            break;
+            case MSG_TYPE_LIZARD_DISCONNECT:
+                handleLizardDisconnect(my_win, &headLizardList, &lizard_msg, socket_lizard, &nClients);
+                break;
+            }
         }
+
+        // Process Roach and Wasp messages
+        if (items[1].revents & ZMQ_POLLIN) {
+            zmq_msg_t zmq_msg;
+            zmq_msg_init(&zmq_msg);
+            int msg_len = zmq_recvmsg(socket_roach_wasp, &zmq_msg, 0);
+            LizardsNroachestypes__GameMessage *received_msg = lizards_nroachestypes__game_message__unpack(NULL, msg_len, zmq_msg_data(&zmq_msg));
+            // Handling different message types
+            msg_type = received_msg->msg_type;
+            switch (msg_type) {
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_CONNECT:
+                    // Handle roaches connect
+                    id_roach++;
+                    handleRoachesConnect(my_win, &headRoachList, received_msg, socket_roach_wasp, &NroachesTotal, id_roach);
+                    break;
+                
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_MOVEMENT:
+                    // Handle roaches movement
+                    handleRoachMovement(my_win, &headRoachList, received_msg, socket_roach_wasp, headLizardList, headWaspList);
+                    break;
+
+                case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT:
+                    // Handle roaches disconnect
+                    handleRoachDisconnect(my_win, &headRoachList, received_msg, socket_roach_wasp, &NroachesTotal);
+                    break;
+
+                default:
+                    printf("Unknown message type received.\n");
+            }
+
+            lizards_nroachestypes__game_message__free_unpacked(received_msg, NULL);
+            zmq_msg_close(&zmq_msg);
+        }
+
+
+        // Update display
         if(m.msg_type != MSG_TYPE_LIZARD_DISCONNECT && m.msg_type != MSG_TYPE_ROACHES_DISCONNECT && m.msg_type != MSG_TYPE_WASPS_DISCONNECT){
             m.msg_type = MSG_TYPE_ACK;
             updateRoachesVisibility(&headRoachList, id_roach);
@@ -120,17 +141,16 @@ int main()
             updateAndRenderLizardsHeads(my_win, headLizardList);
             updateAndRenderRoaches(my_win, headRoachList);
             updateAndRenderWasps(my_win, headWaspList);
-        } else {
-            zmq_send(socket, &m, sizeof(m), 0);
-        }
+        } 
 	    handleDisplayUpdate(socket_display, headLizardList, headRoachList);
     } while (!flag_exit);
   	endwin();			/* End curses mode		  */
     zmq_close(socket_display);
     zmq_ctx_destroy(context);
     printf("Bye\n");
-    disconnectAllLizards(&headLizardList, socket);
-    zmq_close(socket);
+    disconnectAllLizards(&headLizardList, socket_lizard);
+    zmq_close(socket_lizard);
+    zmq_close(socket_roach_wasp);
 
 	return 0;
 }

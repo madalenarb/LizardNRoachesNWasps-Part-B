@@ -1,5 +1,49 @@
-syntax = "proto3";
+syntax = "proto2";
 
 package lizardsNroachestypes;
 
-// Enumerations for 
+// Enumerations for message types
+enum MessageType {
+    ROACHES_CONNECT = 0;
+    ROACHES_MOVEMENT = 1;
+    WASPS_CONNECT = 2;
+    WASPS_MOVEMENT = 3;
+    ACK = 4;
+    SCORE_UPDATE = 5;
+    ROACHES_DISCONNECT = 100;
+    WASPS_DISCONNECT = 101;
+}
+
+// Enumerations for entity types
+enum EntityType {
+    NOTHING = 0;
+    ROACH = 1;
+    WASP = 2;
+}
+
+// Enumerations for direction types
+enum DirectionType {
+    UP = 0;
+    DOWN = 1;
+    LEFT = 2;
+    RIGHT = 3;
+}
+
+// Position structure
+message Position {
+    required int32 position_x = 1;
+    required int32 position_y = 2;
+}
+
+// Game message structure
+message GameMessage {
+    required MessageType msg_type = 1;
+    optional int32 n_roaches = 2;
+    optional int32 n_wasps = 3;
+    optional int32 index = 4;
+    optional int32 roach_index = 5;
+    optional int32 wasp_index = 6;
+    repeated int32 score_roaches = 7;
+    repeated int32 wasps_char = 8;
+    optional DirectionType direction = 9;
+}

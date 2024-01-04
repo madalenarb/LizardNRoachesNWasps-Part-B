@@ -1,4 +1,4 @@
 CC = gcc
 CFLAGS = -g -Wall -Wextra -pedantic
-LIBS = -lzmq -lncurses
+LIBS = -lzmq -lncurses -lprotobuf-c
 

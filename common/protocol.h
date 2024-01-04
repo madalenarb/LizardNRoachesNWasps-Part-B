@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <assert.h>
+#include <pthread.h>
 // #include <zlib.h>
 
 /**
@@ -90,6 +91,7 @@ typedef struct display_update_t
     int score;
     int on_board[MAX_ROACHES_PER_CLIENT];
 } display_update_t;
+
 
 #define FIFO_NAME "/tmp/lizard_fifo"
 

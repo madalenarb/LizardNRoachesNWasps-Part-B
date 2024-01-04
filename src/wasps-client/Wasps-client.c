@@ -7,6 +7,7 @@
 
 #include "wasps_function.h"
 #include <unistd.h>
+#include "../../protos/c_out/protocol.pb-c.h"
 
 int main() {
     // Signal handler for Ctrl+C
@@ -18,14 +19,22 @@ int main() {
     void *socket = zmq_socket(context, ZMQ_REQ);
     zmq_connect(socket, "tcp://localhost:5555");
 
-    message_t m;
+    LizardsNroachestypes__GameMessage m = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
+    m.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_CONNECT;
+    m.n_wasps = rand() % 10 + 1;  // Random number of wasps between 1 and 10
 
-    m.msg_type = MSG_TYPE_WASPS_CONNECT;  // Alterado para wasps
+    // Serialize the message
+    size_t len = lizards_nroachestypes__game_message__get_packed_size(&m);
+    void *buf = malloc(len);
+    lizards_nroachestypes__game_message__pack(&m, buf);
 
-    m.N_wasps= rand() % 10 + 1;  // Número aleatório de roaches entre 1 e 10
+    // Send serialized message to server
+    zmq_send(socket, buf, len, 0);
+    printf("Sent %d wasps\n", m.n_wasps);
+    free(buf);
 
-    zmq_send(socket, &m, sizeof(message_t), 0);
     zmq_recv(socket, &ACK_server, sizeof(message_t), 0);
+    printf("ACK_server.msg_type: %d\n", ACK_server.msg_type);
     printf("client index: %d\n", ACK_server.index);
     if(ACK_server.msg_type == MSG_TYPE_WASPS_DISCONNECT){
         zmq_close(socket);
@@ -40,7 +49,7 @@ int main() {
 
     do {
         // Preencher os movimentos aleatórios para cada barata
-        for (int i = 0; i < m.N_wasps; i++) {
+        for (int i = 0; i < m.n_wasps; i++) {
             // Esperar um tempo aleatório antes do movimento de cada barata
            usleep(rand() % 3000000);  // Esperar até 3 segundos
 

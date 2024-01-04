@@ -17,6 +17,8 @@
 #include "wasp_list.h"
 #include "lizards_funcs.h"
 #include "events.h"
+#include "../../protos/c_out/protocol.pb-c.h"
+
 
 /**
  * @brief Forces the disconnection of a wasp client.

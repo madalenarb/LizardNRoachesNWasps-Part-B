@@ -3,6 +3,17 @@
     "files.associations": {
         "render_funcs.h": "c",
         "roach_funcs.h": "c",
-        "protocol.h": "c"
+        "protocol.h": "c",
+        "lizard_list.h": "c",
+        "wasp_funcs.h": "c",
+        "threadshandler.h": "c",
+        "constants.h": "c",
+        "system_error": "c",
+        "protocol.pb-c.h": "c",
+        "utils.h": "c",
+        "lizards_funcs.h": "c",
+        "roaches_function.h": "c",
+        "variant": "c",
+        "unistd.h": "c"
     }
 }

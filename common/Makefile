@@ -5,7 +5,7 @@ LIBS = -lzmq
 
 # Protocol library
 SRC_DIR = src
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/protos/c_out/*.c)
 OBJ_FILES = $(SRC_FILES:.c=.o)
 TARGET = libprotocol.so
 

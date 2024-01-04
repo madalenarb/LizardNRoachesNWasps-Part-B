@@ -15,6 +15,8 @@
 #include "roach_list.h"
 #include "utils.h"
 #include "lizards_funcs.h"
+#include "../../protos/c_out/protocol.pb-c.h"
+
 
 /**
  * @brief Forces the disconnection of a roach client.
@@ -24,8 +26,7 @@
  * @param m Pointer to the message structure to be sent.
  * @param socket Pointer to the ZeroMQ socket used for communication.
  */
-void forceRoachDisconnect(message_t *m, void *socket);
-
+void forceRoachDisconnect(LizardsNroachestypes__GameMessage *m, void *socket);
 /**
  * @brief Updates the position of a roach based on its direction.
  *
@@ -59,8 +60,7 @@ void cleanRoach(WINDOW *my_win, RoachClient *roachClient, int id);
  * @param NroachesTotal Pointer to the total number of roaches in the game.
  * @param id_roach Identifier of the new roach client.
  */
-void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t *m, void *socket, int *NroachesTotal, int id_roach);
-
+void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList,  LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal, int id_roach);
 /**
  * @brief Manages the movement of a roach client in the game.
  *
@@ -73,7 +73,8 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList, message_t
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, message_t *m, direction_t direction,void *socket, LizardClient *headLizardList, WaspClient *headWaspList);
+void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, LizardClient *headLizardList, WaspClient *headWaspList);
+
 /**
  * @brief Manages the disconnection of a roach client from the game.
  *
@@ -110,6 +111,6 @@ int checkPositionforRoach(RoachClient **headRoachList, position_t position);
  * @param roachClient Pointer to the RoachClient structure.
  * @param id Identifier of the roach within the RoachClient.
  */
-void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, message_t *m, void *socket, int *NroachesTotal);
+void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal);
 
 #endif // ROACH_FUNCS_H
