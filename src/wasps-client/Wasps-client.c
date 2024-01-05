@@ -47,9 +47,7 @@ int main() {
         exit(1);
     }
     free(buf);
-
     if(ack_msg->msg_type == LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT){
-        printf("Disconnected from server\n");
         lizards_nroachestypes__game_message__free_unpacked(ack_msg, NULL);
         zmq_close(socket);
         zmq_ctx_destroy(context);
@@ -57,6 +55,7 @@ int main() {
     }
 
     int index = ack_msg->index;
+    printf("Wasp client %d connected\n", index);
     direction_t direction;
     lizards_nroachestypes__game_message__free_unpacked(ack_msg, NULL);
 
@@ -95,14 +94,11 @@ int main() {
             movement_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_MOVEMENT;
             movement_msg.has_direction = true;
             movement_msg.direction = direction;
-            printf("wasp client %d\n", movement_msg.wasp_index);
-            printf("wasp %d moving to %d\n", movement_msg.wasp_index, movement_msg.direction);
             size_t size_msg = lizards_nroachestypes__game_message__get_packed_size(&movement_msg);
             void *buf = malloc(size_msg);
             lizards_nroachestypes__game_message__pack(&movement_msg, buf);
             zmq_send(socket, buf, size_msg, 0);
             free(buf);
-            
             zmq_msg_t ack;
             zmq_msg_init(&ack);
             zmq_msg_recv(&ack, socket, 0);
@@ -114,9 +110,10 @@ int main() {
             if(ack_msg->msg_type == MSG_TYPE_LIZARD_DISCONNECT || flag_exit == 1){
                 LizardsNroachestypes__GameMessage disconnect_msg;
                 lizards_nroachestypes__game_message__init(&disconnect_msg);
-                disconnect_msg.msg_type = MSG_TYPE_WASPS_DISCONNECT;
+                disconnect_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT;
+                disconnect_msg.has_index = true;
                 disconnect_msg.index = index;
-                size_t len = lizards_nroachestypes__game_message__pack(&disconnect_msg, NULL);
+                size_t len = lizards_nroachestypes__game_message__get_packed_size(&disconnect_msg);
                 void *buf = malloc(len);
                 lizards_nroachestypes__game_message__pack(&disconnect_msg, buf);
                 zmq_send(socket, buf, len, 0);

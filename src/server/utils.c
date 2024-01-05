@@ -59,3 +59,9 @@ int comparePosition(position_t position1, position_t position2){
     }
     return 0;
 }
+
+void updateGameState(GameState* gameState, LizardClient* headLizardList, RoachClient* headRoachList, WaspClient* headWaspList){
+    gameState->headLizardList = headLizardList;
+    gameState->headRoachList = headRoachList;
+    gameState->headWaspList = headWaspList;
+}

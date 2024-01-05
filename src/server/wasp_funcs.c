@@ -148,7 +148,6 @@ void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroa
         LizardsNroachestypes__GameMessage ack_msg;
         lizards_nroachestypes__game_message__init(&ack_msg);
         ack_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
-        
         size_t len = lizards_nroachestypes__game_message__get_packed_size(&ack_msg);
         void *buf = malloc(len);
         lizards_nroachestypes__game_message__pack(&ack_msg, buf);

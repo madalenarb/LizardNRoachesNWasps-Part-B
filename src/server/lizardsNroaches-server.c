@@ -165,7 +165,6 @@ int main()
   	endwin();			/* End curses mode		  */
     zmq_close(socket_display);
     zmq_ctx_destroy(context);
-    printf("Bye\n");
     disconnectAllLizards(&headLizardList, socket_lizard);
     zmq_close(socket_lizard);
     zmq_close(socket_roach_wasp);
