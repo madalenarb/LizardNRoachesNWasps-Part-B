@@ -49,7 +49,7 @@ void new_position_wasps(WaspClient *waspClient, int id);
  * @param waspClient Pointer to the WaspClient structure.
  * @param id Identifier of the wasp within the RoachClient.
  */
-void cleanWasp(WINDOW *my_win, WaspClient *waspClient, int id);
+void cleanWasp(WaspClient *waspClient, int id);
 
 /**
  * @brief Handles the connection of a new roach client to the server.
@@ -63,7 +63,7 @@ void cleanWasp(WINDOW *my_win, WaspClient *waspClient, int id);
  * @param NroachesTotal Pointer to the total number of roaches in the game.
  * @param id_roach Identifier of the new wasp client.
  */
-void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal, int id_wasp);
+void handleWaspsConnect(LizardsNroachestypes__GameMessage *m, void *socket, int id_wasp);
 
 /**
  * @brief Manages the movement of a roach client in the game.
@@ -77,7 +77,7 @@ void handleWaspsConnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroach
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, RoachClient **headRoachList, LizardClient *headLizardList);
+void handleWaspMovement(LizardsNroachestypes__GameMessage *m, void *socket);
 
 /**
  * @brief Handles the disconnection of a wasp client from the server.
@@ -90,7 +90,7 @@ void handleWaspMovement(WINDOW *my_win, WaspClient **headWaspList, LizardsNroach
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param NwaspsTotal Pointer to the total number of wasps in the game.
  */
-void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroachestypes__GameMessage *m, void *socket, int *NwaspsTotal);
+void handleWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket);
 
 /**
  * @brief Disconnects all wasp clients at the end of the game or during shutdown.
@@ -102,7 +102,7 @@ void handleWaspDisconnect(WINDOW *my_win, WaspClient **headWaspList, LizardsNroa
  * @param headWaspList Pointer to the head of the linked list of wasp clients.
  * @param NwaspsTotal Pointer to the total number of wasps in the game.
  */
-void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTotal);
+void disconnectAllWasps();
 
 /**
  * @brief Checks if a wasp is in a given position.
@@ -113,6 +113,6 @@ void disconnectAllWasps(WINDOW *my_win, WaspClient **headWaspList, int *NwaspsTo
  * @param position Position to check.
  * @return 1 if a wasp is in the given position, 0 otherwise.
  */
-int checkPositionforWasp(WaspClient *headWaspList, position_t position);
+int checkPositionforWasp(position_t position);
 
 #endif // ROACH_FUNCS_H

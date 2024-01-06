@@ -8,6 +8,8 @@
 
 #include "wasp_list.h"
 
+#include "utils.h"
+
 WaspClient *initWaspClient(int n_wasps, int id_wasp){
     WaspClient *newWaspClient = (WaspClient *)malloc(sizeof(WaspClient));
     if(newWaspClient == NULL){
@@ -26,13 +28,13 @@ WaspClient *initWaspClient(int n_wasps, int id_wasp){
     return newWaspClient;
 }
 
-void addWaspClient(WaspClient **headWaspList, int n_wasps, int id_wasp){
+void addWaspClient(int n_wasps, int id_wasp){
     WaspClient *newWaspClient = initWaspClient(n_wasps, id_wasp);
-    if(*headWaspList == NULL){
-        *headWaspList = newWaspClient;
+    if(gameState.headWaspList == NULL){
+        gameState.headWaspList = newWaspClient;
     }
     else{
-        WaspClient *currentWaspClient = *headWaspList;
+        WaspClient *currentWaspClient = gameState.headWaspList;
         while(currentWaspClient->next != NULL){
             currentWaspClient = currentWaspClient->next;
         }
@@ -40,8 +42,8 @@ void addWaspClient(WaspClient **headWaspList, int n_wasps, int id_wasp){
     }
 }
 
-WaspClient* findWaspClient(WaspClient **headWaspList, int id_wasp){
-    WaspClient *currentWaspClient = *headWaspList;
+WaspClient* findWaspClient(int id_wasp){
+    WaspClient *currentWaspClient = gameState.headWaspList;
     while(currentWaspClient != NULL){
         if(currentWaspClient->id == id_wasp){
             break;
@@ -61,14 +63,14 @@ int countWasps(WaspClient *headWaspList){
     return count;
 }
 
-void removeWaspClient(WaspClient **headWaspList, int id_wasp){
-    if(*headWaspList == NULL){
+void removeWaspClient(int id_wasp){
+    if(gameState.headWaspList == NULL){
         return;
     }
     
-    WaspClient *temp = *headWaspList, *prev = NULL;
+    WaspClient *temp = gameState.headWaspList, *prev = NULL;
     if(temp != NULL && temp->id == id_wasp){
-        *headWaspList = temp->next;
+        gameState.headWaspList = temp->next;
         free(temp);
         return;
     }
@@ -83,21 +85,28 @@ void removeWaspClient(WaspClient **headWaspList, int id_wasp){
     free(temp);
 }
 
-void printWaspList(WaspClient *headWaspList){
-    WaspClient *currentWaspClient = headWaspList;
+void printWaspList(){
+    if(gameState.headWaspList == NULL){
+        printf("No wasps in the list.\n");
+        return;
+    }
+    WaspClient *currentWaspClient = gameState.headWaspList;
     while(currentWaspClient != NULL){
         printf("WaspClient id: %d\n", currentWaspClient->id);
+        for(int i = 0; i < currentWaspClient->num_wasps; i++){
+            printf("Wasp %d: position (%d, %d), direction %d, on_board %d\n", i, currentWaspClient->wasps[i].position.position_x, currentWaspClient->wasps[i].position.position_y, currentWaspClient->wasps[i].direction, currentWaspClient->wasps[i].on_board);
+        }
         currentWaspClient = currentWaspClient->next;
     }
 }
 
-void freeWaspList(WaspClient **headWaspList){
-    WaspClient *currentWaspClient = *headWaspList;
+void freeWaspList(){
+    WaspClient *currentWaspClient = gameState.headWaspList;
     WaspClient *nextWaspClient = NULL;
     while(currentWaspClient != NULL){
         nextWaspClient = currentWaspClient->next;
         free(currentWaspClient);
         currentWaspClient = nextWaspClient;
     }
-    *headWaspList = NULL;
+    gameState.headWaspList = NULL;
 }

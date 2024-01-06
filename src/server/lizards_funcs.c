@@ -207,39 +207,57 @@ void lizardTailOrientation(LizardClient *currentClient){
     }
 }
 
-void handleLizardConnect(WINDOW *my_win, LizardClient **headLizardList, message_t *m, void *socket, int *nClients){
-    if(findLizardClient(*headLizardList, m->ch) != NULL || *nClients >= MAX_CLIENTS){
+void handleLizardConnect(message_t *m, void *socket){
+    if(findLizardClient(m->ch) != NULL || gameState.numLizardsClients >= MAX_CLIENTS){
+        pthread_mutex_lock(&lizard_lock);
         forceLizardDisconnect(m, socket);
+        pthread_mutex_unlock(&lizard_lock);
     } else {
-        nClients++;
+        pthread_mutex_lock(&sharedGameState);
+        gameState.numLizardsClients++;
+        pthread_mutex_unlock(&sharedGameState);
         m->msg_type = MSG_TYPE_ACK;
         m->score_lizard = 0;
         m->password = rand()+19999299;
 
-        zmq_send(socket, m, sizeof(*m), 0);
-        addLizardClient(headLizardList, m->ch, m->password);
-        LizardClient *newLizard = findLizardClient(*headLizardList, m->ch);
-        renderLizardhead(my_win, newLizard);    
-        renderLizardTail(my_win, newLizard);
+        pthread_mutex_lock(&lizard_lock);
+        pthread_mutex_lock(&sharedGameState);
+        addLizardClient(m->ch, m->password);
+        // LizardClient *newLizard = findLizardClient(m->ch);
+        // renderLizardhead(my_win, newLizard);    
+        // renderLizardTail(my_win, newLizard);
+        pthread_mutex_unlock(&sharedGameState);
+        pthread_mutex_unlock(&lizard_lock);
     }
 }
 
-void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket, WaspClient **headWaspList){
-    LizardClient *currentLizard = findLizardClient(*headLizardList, m->ch);
+void handleLizardMovement(message_t *m, void *socket){
+    pthread_mutex_lock(&lizard_lock);/**/
+    LizardClient *currentLizard = findLizardClient(m->ch);
     int flag = 0;
     int stingOccurred = 0;
+
     if(m->password != currentLizard->password){
         forceLizardDisconnect(m, socket);
     } else {
+        printf("else\n");
         if(currentLizard != NULL){
             currentLizard->direction = m->direction;
             m->msg_type = MSG_TYPE_ACK;
-            stingOccurred = WaspStingsLizard(my_win, headLizardList, currentLizard, headWaspList, NULL);
-            flag = lizardHitsLizard(my_win, headLizardList, currentLizard);
+            printf("currentLizard->direction: %d\n", currentLizard->direction);
+            pthread_mutex_lock(&sharedGameState);
+            stingOccurred = WaspStingsLizard(currentLizard, NULL);
+            printf("stingOccurred: %d\n", stingOccurred);
+            flag = lizardHitsLizard(currentLizard);
+            printf("flag: %d\n", flag);
             if(flag == 0 && stingOccurred == 0){
-                updateAndRenderOneLizard(my_win, currentLizard);
+                // updateAndRenderOneLizard(currentLizard);
+                printf("Lizard %c moved to %d, %d\n", currentLizard->id, currentLizard->position.position_x, currentLizard->position.position_y);
+                new_position(currentLizard);
             }
-            lizardEatsRoach(my_win, headRoachList, currentLizard);
+            lizardEatsRoach(currentLizard);
+            pthread_mutex_unlock(&sharedGameState);
+
             m->direction = currentLizard->direction;
             m->score_lizard = currentLizard->score;
             m->ch = currentLizard->id;
@@ -249,26 +267,84 @@ void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachCl
             forceLizardDisconnect(m, socket);
         }
     }
+    pthread_mutex_unlock(&lizard_lock); // **Unlock after all shared resources are safely modified
 }
 
-void handleLizardDisconnect(WINDOW *my_win, LizardClient **headLizardList, message_t *m, void *socket, int *nClients){
-    LizardClient *otherLizard = findLizardClient(*headLizardList, m->ch);
+///*versão 2(mais segura porque verifica primeiro se currentLizard é NULL e, se for, desconecta o lagarto 
+//          e retorna imediatamente. Isso evita qualquer desreferenciação de um ponteiro nulo.)*/
+
+// void handleLizardMovement(message_t *m, void *socket){
+//     pthread_mutex_lock(&lizard_lock);
+//     LizardClient *currentLizard = findLizardClient(m->ch);
+
+
+//     if(currentLizard == NULL){
+//         // Handle case where lizard is not found
+//         forceLizardDisconnect(m, socket);
+//         pthread_mutex_unlock(&lizard_lock);
+//         return;
+//     }
+
+//     if(m->password != currentLizard->password){
+//         // Handle password mismatch
+//         forceLizardDisconnect(m, socket);
+//     } else {
+//         // Valid lizard, process movement
+//         int flag = 0;
+//         int stingOccurred = 0;
+//         currentLizard->direction = m->direction;
+//         m->msg_type = MSG_TYPE_ACK;
+
+//         pthread_mutex_lock(&sharedGameState);
+//         stingOccurred = WaspStingsLizard(my_win, headLizardList, currentLizard, headWaspList, NULL);
+//         flag = lizardHitsLizard(my_win, headLizardList, currentLizard);
+//         if(flag == 0 && stingOccurred == 0){
+//             updateAndRenderOneLizard(my_win, currentLizard);
+//         }
+//         lizardEatsRoach(my_win, headRoachList, currentLizard);
+//         pthread_mutex_unlock(&sharedGameState);
+
+//         m->direction = currentLizard->direction;
+//         m->score_lizard = currentLizard->score;
+//         m->ch = currentLizard->id;
+
+//         // Send the message
+//         zmq_send(socket, m, sizeof(*m), 0);
+//     }
+//     pthread_mutex_unlock(&lizard_lock);
+// }
+
+
+void handleLizardDisconnect(message_t *m, void *socket){
+    printf("handleLizardDisconnect\n");
+    pthread_mutex_lock(&lizard_lock);  // **//
+    m->msg_type = MSG_TYPE_LIZARD_DISCONNECT;
+    printf("handleLizar1111dDisconnect\n");
+    LizardClient *otherLizard = findLizardClient(m->ch);
     if(otherLizard != NULL){
         m->msg_type = MSG_TYPE_LIZARD_DISCONNECT;
         zmq_send(socket, &m, sizeof(*m), 0);
-        cleanLizard(my_win, otherLizard);
-        disconnectLizardClient(headLizardList, m->ch);
-        nClients--;
+        //zmq_send(socket, m, sizeof(*m), 0); //&m ou m?
+        pthread_mutex_lock(&sharedGameState);
+        cleanLizard(gameState.my_win, otherLizard);
+        disconnectLizardClient(m->ch);
+        gameState.numLizardsClients--;
+        pthread_mutex_unlock(&sharedGameState);
     }
-}
+    pthread_mutex_unlock(&lizard_lock);/**/
+} 
 
-void disconnectAllLizards(LizardClient **headLizardList, void *socket) {
-    LizardClient *currentLizard = *headLizardList;
+void disconnectAllLizards(void *socket) {
+    pthread_mutex_lock(&lizard_lock); /**/
+    LizardClient *currentLizard = gameState.headLizardList;
     while (currentLizard != NULL) {
-        
+        //nextLizard = currentLizard->next; // Salve o próximo lagarto antes de potencialmente liberar o atual(recomendam fazer isto)
+
         // Send a message before disconnecting
         message_t m;
-        zmq_recv(socket, &m, sizeof(m), 0);
+        zmq_recv(socket, &m, sizeof(m), 0); //estas 2 linhas podem causar erros!!
+
+
         message_t disconnectMessage;
         disconnectMessage.msg_type = MSG_TYPE_LIZARD_DISCONNECT;
         disconnectMessage.ch = currentLizard->id;
@@ -277,17 +353,20 @@ void disconnectAllLizards(LizardClient **headLizardList, void *socket) {
 
         // Disconnect lizard
         // Clean and disconnect
-        disconnectLizardClient(headLizardList, currentLizard->id);
+        disconnectLizardClient(currentLizard->id);
         currentLizard = currentLizard->next;
     }
 
-    freeList(headLizardList);
-}
+    freeList();
 
-int checkPositionforLizard(LizardClient *headLizardList, position_t position){
-    LizardClient *currentLizard = headLizardList;
+    pthread_mutex_unlock(&lizard_lock); 
+}
+//isso tinha sido que nao tinha apagado um / mas depis
+int checkPositionforLizard(position_t position){
+    LizardClient *currentLizard = gameState.headLizardList;
     while(currentLizard != NULL){
         if(comparePosition(currentLizard->position, position)){
+            pthread_mutex_unlock(&lizard_lock);
             return 1;
         }
         currentLizard = currentLizard->next;

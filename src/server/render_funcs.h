@@ -57,7 +57,7 @@ void updateAndRenderLizardsTails(WINDOW *my_win, LizardClient *headLizardList);
  * @param my_win Pointer to the game window.
  * @param otherLizard Pointer to the LizardClient structure to be updated and rendered.
  */
-void updateAndRenderOneLizard(WINDOW *my_win, LizardClient *otherLizard);
+void updateAndRenderOneLizard(LizardClient *otherLizard);
 
 /**
  * @brief Checks if a position is occupied by a lizard.
@@ -68,7 +68,7 @@ void updateAndRenderOneLizard(WINDOW *my_win, LizardClient *otherLizard);
  * @param position The position to be checked.
  * @return 1 if occupied, 0 otherwise.
  */
-int checkPositionforLizard(LizardClient *headLizardList, position_t position);
+int checkPositionforLizard(position_t position);
 
 /**
  * @brief Renders a roach on the game window.
@@ -80,7 +80,7 @@ int checkPositionforLizard(LizardClient *headLizardList, position_t position);
  * @param id The ID of the roach to be rendered.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList, WaspClient *headWaspList);
+void renderRoach(int id, RoachClient *roachClient);
 
 /**
  * @brief Updates and renders all roaches on the game window.
@@ -132,7 +132,7 @@ void renderLizardTail(WINDOW *my_win, LizardClient *otherLizard);
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  * @param currentLizard Pointer to the LizardClient structure that eats the roach.
  */
-void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *currentLizard);
+void lizardEatsRoach(LizardClient *currentLizard);
 
 /**
  * @brief Updates the visibility status of roaches.
@@ -142,7 +142,7 @@ void lizardEatsRoach(WINDOW *my_win, RoachClient **headRoachList, LizardClient *
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  * @param id_roach The ID of the roach client to update visibility for.
  */
-void updateRoachesVisibility(RoachClient **headRoachList, int id_roach);
+void updateRoachesVisibility(int id_roach);
 
 
 /**
@@ -155,7 +155,7 @@ void updateRoachesVisibility(RoachClient **headRoachList, int id_roach);
  * @param id The ID of the wasp to be rendered.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList, LizardClient *headLizardList);
+void renderWasp(WaspClient *waspClient, int waspIndex);
 
 /**
  * @brief Updates and renders all wasps on the game window.
@@ -166,5 +166,15 @@ void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClie
  * @param headWaspsList Pointer to the head of the linked list of wasp clients.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList);
+void updateAndRenderWasps();
+
+/**
+ * @brief renders roaches of a roach client
+ * 
+ * Displays all roaches of a roach client at their current position on the game window.
+ * 
+ * @param my_win Pointer to the game window.
+ * @param roachClient Pointer to the RoachClient structure.
+*/
+void renderRoaches(RoachClient *roachClient);
 #endif // RENDER_FUNCS_H

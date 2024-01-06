@@ -7,6 +7,8 @@
  */
 #include "Lizard_list.h"
 
+#include "utils.h"
+
 // Create a new LizardClient
 LizardClient* initLizardClient(char id, int password){
     LizardClient* newClient = malloc(sizeof(LizardClient));
@@ -53,12 +55,12 @@ LizardClient* initLizardClient(char id, int password){
 
 
 // Add a new LizardClient to the end of the list
-void addLizardClient(LizardClient** headLizardList, char id, int password){
+void addLizardClient(char id, int password){
     LizardClient* lizardClient = initLizardClient(id, password);
-    if(*headLizardList == NULL){
-        *headLizardList = lizardClient;
+    if(gameState.headLizardList == NULL){
+        gameState.headLizardList = lizardClient;
     } else {
-        LizardClient* current = *headLizardList;
+        LizardClient* current = gameState.headLizardList;
         while(current->next != NULL){
             current = current->next;
         }
@@ -67,8 +69,8 @@ void addLizardClient(LizardClient** headLizardList, char id, int password){
 }
 
 // Print the list of LizardClient
-void printList(LizardClient* headLizardList){
-    LizardClient* current = headLizardList;
+void printList(){
+    LizardClient* current = gameState.headLizardList;
     while(current != NULL){
         printf("id: %c, position: %d, %d, score: %d\n", current->id, current->position.position_x, current->position.position_y, current->score);
         for(int i=0; i<5; i++)
@@ -90,10 +92,10 @@ int countLizards(LizardClient* headLizardList){
 }
 
 // Disconect a LizardClient from the list
-void disconnectLizardClient(LizardClient** headLizardList, char id){
-    LizardClient* current = *headLizardList, *prev;
+void disconnectLizardClient(char id){
+    LizardClient* current = gameState.headLizardList, *prev;
     if(current != NULL && current->id == id){
-        *headLizardList = current->next;
+        gameState.headLizardList = current->next;
         free(current);
         return;
     }
@@ -107,20 +109,22 @@ void disconnectLizardClient(LizardClient** headLizardList, char id){
 }
 
 // Free the list of LizardClient
-void freeList(LizardClient** headLizardList){
+void freeList(){
     LizardClient* current;
-    while(*headLizardList != NULL){
-        current = *headLizardList;
-        *headLizardList = (*headLizardList)->next;
+    while(gameState.headLizardList != NULL){
+        current = gameState.headLizardList;
+        gameState.headLizardList = (gameState.headLizardList)->next;
         free(current);
     }
 }
 
 // Get the LizardClient with the id
-LizardClient* findLizardClient(LizardClient* headLizardList, char id){
-    LizardClient* current = headLizardList;
+LizardClient* findLizardClient(char id){
+    printf("findLizardClient\n");
+    LizardClient* current = gameState.headLizardList;
     while(current != NULL){
         if(current->id == id){
+            printf("found lizard\n");
             return current;
         }
         current = current->next;

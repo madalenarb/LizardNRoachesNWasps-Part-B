@@ -60,7 +60,8 @@ void cleanRoach(WINDOW *my_win, RoachClient *roachClient, int id);
  * @param NroachesTotal Pointer to the total number of roaches in the game.
  * @param id_roach Identifier of the new roach client.
  */
-void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList,  LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal, int id_roach);
+void handleRoachesConnect(LizardsNroachestypes__GameMessage *m, int id_roach, void *socket);
+
 /**
  * @brief Manages the movement of a roach client in the game.
  *
@@ -73,7 +74,7 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList,  LizardsN
  * @param socket Pointer to the ZeroMQ socket used for communication.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, LizardClient *headLizardList, WaspClient *headWaspList);
+void handleRoachMovement(LizardsNroachestypes__GameMessage *m, void *socket);
 
 /**
  * @brief Manages the disconnection of a roach client from the game.
@@ -100,7 +101,7 @@ void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *soc
  * 
  * @return 0 if the roach is not on the board, 1 otherwise.
  */
-int checkPositionforRoach(RoachClient **headRoachList, position_t position);
+int checkPositionforRoach(position_t position);
 
 /**
  * @brief Renders the head of a roach client.
@@ -111,6 +112,6 @@ int checkPositionforRoach(RoachClient **headRoachList, position_t position);
  * @param roachClient Pointer to the RoachClient structure.
  * @param id Identifier of the roach within the RoachClient.
  */
-void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal);
+void handleRoachDisconnect(LizardsNroachestypes__GameMessage *m, void *socket);
 
 #endif // ROACH_FUNCS_H

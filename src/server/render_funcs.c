@@ -8,8 +8,9 @@
 
 #include "render_funcs.h"   
 
-void updateRoachesVisibility(RoachClient **headRoachList, int id_roach){
-    RoachClient *currentRoachClient = findRoachClient(headRoachList, id_roach);
+void updateRoachesVisibility(int id_roach){
+    
+    RoachClient *currentRoachClient = findRoachClient(id_roach);
 
     while(currentRoachClient != NULL){
         for(int i = 0; i < currentRoachClient->num_roaches; i++){
@@ -23,6 +24,7 @@ void updateRoachesVisibility(RoachClient **headRoachList, int id_roach){
         }
         currentRoachClient = currentRoachClient->next;
     }
+    
 }
 
 void setupWindows(WINDOW **my_win){
@@ -60,43 +62,64 @@ void cleanLizard(WINDOW *my_win, LizardClient *otherLizard){
 }
 
 void updateAndRenderLizardsHeads(WINDOW *my_win, LizardClient *headLizardList){
+    pthread_mutex_lock(&lizard_lock);
     LizardClient *currentLizard = headLizardList;
     while(currentLizard != NULL){
         //Update lizard position
         renderLizardhead(my_win, currentLizard);
         currentLizard = currentLizard->next;
     }
+    pthread_mutex_unlock(&lizard_lock);
 }
 
 void updateAndRenderLizardsTails(WINDOW *my_win, LizardClient *headLizardList){
+    pthread_mutex_lock(&lizard_lock);
     LizardClient *currentLizard = headLizardList;
     while(currentLizard != NULL){
         //Update lizard position
         renderLizardTail(my_win, currentLizard);
         currentLizard = currentLizard->next;
     }
+    pthread_mutex_unlock(&lizard_lock);
 }
 
-void updateAndRenderOneLizard(WINDOW *my_win, LizardClient *otherLizard){
+void updateAndRenderOneLizard(LizardClient *otherLizard){
+    pthread_mutex_lock(&lizard_lock);
     //Update lizard position
-    cleanLizard(my_win, otherLizard);
+    cleanLizard(gameState.my_win, otherLizard);
 
     new_position(otherLizard);
 
     //Render updated lizard
-    renderLizardhead(my_win, otherLizard);
-    renderLizardTail(my_win, otherLizard);
+    renderLizardhead(gameState.my_win, otherLizard);
+    renderLizardTail(gameState.my_win, otherLizard);
+
+    pthread_mutex_unlock(&lizard_lock);
 }
 
-void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient *headLizardList, WaspClient *headWaspList){
-    wmove(my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
-    waddch(my_win, ' ');
-    wrefresh(my_win);
+void renderInitRoach(RoachClient *roachClient, int id){
+    wmove(gameState.my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
+    waddch(gameState.my_win, '0' + roachClient->roaches[id].score);
+}
+
+void renderRoaches(RoachClient *roachClient){
+    for(int i = 0; i < roachClient->num_roaches; i++){
+        if(roachClient->roaches[i].on_board == 1){
+            renderInitRoach(roachClient, i);
+        }
+    }
+    wrefresh(gameState.my_win);
+}
+
+void renderRoach(int id, RoachClient *roachClient){
+    wmove(gameState.my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
+    waddch(gameState.my_win, ' ');
+    wrefresh(gameState.my_win);
     position_t nextPosition = auxNextPosition(roachClient->roaches[id].position, roachClient->roaches[id].direction);
     
     int occupied_position = 0;
-    int occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
-    int occupied_position_wasps = checkPositionforWasp(headWaspList, nextPosition);
+    int occupied_position_lizard = checkPositionforLizard(nextPosition);
+    int occupied_position_wasps = checkPositionforWasp(nextPosition);
     if(occupied_position_wasps == 1 || occupied_position_lizard == 1){
         occupied_position = 1;
     }
@@ -104,8 +127,8 @@ void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient 
     while(occupied_position == 1){
         roachClient->roaches[id].direction = (direction_t) (rand() % 4);
         nextPosition = auxNextPosition(roachClient->roaches[id].position, roachClient->roaches[id].direction);
-        occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
-        occupied_position_wasps = checkPositionforWasp(headWaspList, nextPosition);
+        occupied_position_lizard = checkPositionforLizard(nextPosition);
+        occupied_position_wasps = checkPositionforWasp(nextPosition);
 
         if(occupied_position_wasps == 1 || occupied_position_lizard == 1){
             occupied_position = 1;
@@ -119,10 +142,11 @@ void renderRoach(WINDOW *my_win, RoachClient *roachClient, int id, LizardClient 
         new_position_roaches(roachClient, id);
     }
 
-    wmove(my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
-    waddch(my_win,'0' + roachClient->roaches[id].score);
-    wrefresh(my_win);
+    wmove(gameState.my_win, roachClient->roaches[id].position.position_x, roachClient->roaches[id].position.position_y);
+    waddch(gameState.my_win,'0' + roachClient->roaches[id].score);
+    wrefresh(gameState.my_win);
 }
+
 
 void updateAndRenderRoaches(WINDOW *my_win, RoachClient *headRoachList){
     RoachClient *currentRoachClient = headRoachList;
@@ -138,37 +162,37 @@ void updateAndRenderRoaches(WINDOW *my_win, RoachClient *headRoachList){
     wrefresh(my_win);
 }
 
-void renderWasp(WINDOW *my_win, WaspClient *waspClient, int waspIndex, RoachClient **headRoachList, LizardClient *headLizardList){
-    cleanWasp(my_win, waspClient, waspIndex);
+void renderWasp(WaspClient *waspClient, int waspIndex){
+    cleanWasp(waspClient, waspIndex);
     // Calculate the next position of the wasp
     position_t nextPosition = auxNextPosition(waspClient->wasps[waspIndex].position, waspClient->wasps[waspIndex].direction);
 
     // Check if the next position is occupied by a lizard
-    int occupied_position = checkPositionforRoach(headRoachList, nextPosition);
-    int occupied_position_lizard = checkPositionforLizard(headLizardList, nextPosition);
+    int occupied_position = checkPositionforRoach(nextPosition);
+    int occupied_position_lizard = checkPositionforLizard(nextPosition);
 
     if(occupied_position == 0 && occupied_position_lizard == 0){
         new_position_wasps(waspClient, waspIndex);  
 
 
-        wmove(my_win, waspClient->wasps[waspIndex].position.position_x, waspClient->wasps[waspIndex].position.position_y);
-        waddch(my_win, '#');  // Representa vespas com '#'
-        wrefresh(my_win);
+        wmove(gameState.my_win, waspClient->wasps[waspIndex].position.position_x, waspClient->wasps[waspIndex].position.position_y);
+        waddch(gameState.my_win, '#');  // Representa vespas com '#'
+        wrefresh(gameState.my_win);
     }
 }
 
-void updateAndRenderWasps(WINDOW *my_win, WaspClient *headWaspList){
-    WaspClient *currentWaspClient = headWaspList;
+void updateAndRenderWasps(){
+    WaspClient *currentWaspClient = gameState.headWaspList;
     while(currentWaspClient != NULL){
         for(int i = 0; i < currentWaspClient->num_wasps; i++){
             if(currentWaspClient->wasps[i].on_board == 1){
-                wmove(my_win, currentWaspClient->wasps[i].position.position_x, currentWaspClient->wasps[i].position.position_y);
-                waddch(my_win, '#'); 
-                wrefresh(my_win);
+                wmove(gameState.my_win, currentWaspClient->wasps[i].position.position_x, currentWaspClient->wasps[i].position.position_y);
+                waddch(gameState.my_win, '#'); 
+                wrefresh(gameState.my_win);
             }
         }
         currentWaspClient = currentWaspClient->next;
     }
-    wrefresh(my_win);
+    wrefresh(gameState.my_win);
 }
 

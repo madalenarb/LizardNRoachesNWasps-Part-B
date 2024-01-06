@@ -16,7 +16,7 @@ int main() {
     int n = 0;
     void *context = zmq_ctx_new();
     void *socket = zmq_socket(context, ZMQ_REQ);
-    int rc = zmq_connect(socket, "tcp://localhost:5557");
+    int rc = zmq_connect(socket, "tcp://localhost:5555");
     if(rc != 0){
         printf("Error connecting to server\n");
         exit(1);

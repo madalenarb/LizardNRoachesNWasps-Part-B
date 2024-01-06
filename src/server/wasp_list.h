@@ -42,7 +42,7 @@ typedef struct WaspClient {
  * @param n_wasps Number of wasps in the client.
  * @param id_wasp Identifier for the new wasp client.
  */
-void addWaspClient(WaspClient **headWaspList, int n_wasps, int id_wasp);
+void addWaspClient(int n_wasps, int id_wasp);
 
 /**
  * @brief Finds a wasp client in the linked list.
@@ -53,7 +53,7 @@ void addWaspClient(WaspClient **headWaspList, int n_wasps, int id_wasp);
  * @param id_wasp Identifier of the wasp client to find.
  * @return Pointer to the found WaspClient, or NULL if not found.
  */
-WaspClient* findWaspClient(WaspClient **headWaspList, int id_wasp);
+WaspClient* findWaspClient(int id_wasp);
 
 /**
  * @brief Counts the total number of wasps in all clients.
@@ -72,7 +72,7 @@ int countWasps(WaspClient *headWaspList);
  *
  * @param headWaspList Pointer to the head of the linked list of wasp clients.
  */
-void freeWaspList(WaspClient **headWaspList);
+void freeWaspList();
 
 /**
  * @brief Removes a wasp client from the linked list.
@@ -82,7 +82,7 @@ void freeWaspList(WaspClient **headWaspList);
  * @param headWaspList Pointer to the head of the linked list of wasp clients.
  * @param id_wasp Identifier of the wasp client to remove.
  */
-void removeWaspClient(WaspClient **headWaspList, int id_wasp);
+void removeWaspClient(int id_wasp);
 
 /**
  * @brief Prints the details of all wasp clients in the linked list.
@@ -91,6 +91,6 @@ void removeWaspClient(WaspClient **headWaspList, int id_wasp);
  *
  * @param headWaspList Pointer to the head of the linked list of wasp clients.
  */
-void printWaspList(WaspClient *headWaspList);
+void printWaspList();
 
 #endif /*  WASP_LIST_H */

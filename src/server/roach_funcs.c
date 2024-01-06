@@ -7,14 +7,18 @@
  */
 
 #include "roach_funcs.h"
+#include "utils.h"
 
 void forceRoachDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
+    //pthread_mutex_lock(&roach_lock);
     m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT;
     size_t len = lizards_nroachestypes__game_message__pack(m, NULL);
     void *buf = malloc(len);
     lizards_nroachestypes__game_message__pack(m, buf);
     zmq_send(socket, buf, len, 0);
     free(buf);
+
+    //pthread_mutex_unlock(&roach_lock);
 }
 
 void new_position_roaches(RoachClient *roachClient, int id){
@@ -60,23 +64,19 @@ void cleanRoachClient(WINDOW *my_win, RoachClient *roachClient){
 
 
 
-void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList,  LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal, int id_roach){
-    *NroachesTotal += m->n_roaches;
-    if(*NroachesTotal>=MAX_ROACHES){
+void handleRoachesConnect(LizardsNroachestypes__GameMessage *m, int id_roach, void *socket){
+    pthread_mutex_lock(&sharedGameState);
+    gameState.numRoaches += m->n_roaches;
+    if(gameState.numRoaches>=MAX_ROACHES){
         // Create and send disconnect message using protobuff
         LizardsNroachestypes__GameMessage disconnect_msg;
         lizards_nroachestypes__game_message__init(&disconnect_msg);
         disconnect_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT;
         forceRoachDisconnect(&disconnect_msg, socket);
     } else {
-        addRoachClient(headRoachList, m->score_roaches, m->n_roaches, id_roach);
-        RoachClient *roachClient = findRoachClient(headRoachList, id_roach);
-        for (int i = 0; i < m->n_roaches; i++)
-        {
-            wmove(my_win, roachClient->roaches[i].position.position_x, roachClient->roaches[i].position.position_y);
-            waddch(my_win, '0' + roachClient->roaches[i].score);
-        }
-        wrefresh(my_win);
+        addRoachClient(m->score_roaches, m->n_roaches, id_roach);
+        // RoachClient *roachClient = findRoachClient(id_roach);
+        // renderRoaches(roachClient); // DO THISSSSSSSSSLSFAJAFJAÇOJ
         // Serielize the message
         LizardsNroachestypes__GameMessage response_msg;
         lizards_nroachestypes__game_message__init(&response_msg);
@@ -89,16 +89,17 @@ void handleRoachesConnect(WINDOW *my_win, RoachClient **headRoachList,  LizardsN
         zmq_send(socket, buf, size_msg, 0);
         free((int *)buf);
     }
+    pthread_mutex_unlock(&sharedGameState);
 }
 
 
 
-void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, LizardClient *headLizardList, WaspClient *headWaspList)
+void handleRoachMovement(LizardsNroachestypes__GameMessage *m, void *socket)
 {
     int id_roach = m->index;
     int roach = m->roach_index;
     // printRoachList(*headRoachList);
-    RoachClient *roachClient = findRoachClient(headRoachList, id_roach);
+    RoachClient *roachClient = findRoachClient(id_roach);
     if(roachClient == NULL){
         LizardsNroachestypes__GameMessage disconnect_msg = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
         forceRoachDisconnect(&disconnect_msg, socket);
@@ -106,7 +107,7 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNro
         // Update roachClient data based on protobuf message
         roachClient->roaches[roach].direction = m->direction;
         if(roachClient->roaches[roach].on_board == 1){
-            renderRoach(my_win, roachClient, roach, headLizardList, headWaspList);
+            renderRoach(roach, roachClient);
         }
         
         // Prepare ACK message
@@ -121,20 +122,20 @@ void handleRoachMovement(WINDOW *my_win, RoachClient **headRoachList, LizardsNro
     }
 }
 
-void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, LizardsNroachestypes__GameMessage *m, void *socket, int *NroachesTotal){
+void handleRoachDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
     int id_roach = m->index;
     
     // Find the roach client that is disconnecting
-    RoachClient *roachClient = findRoachClient(headRoachList, id_roach);
+    RoachClient *roachClient = findRoachClient(id_roach);
     if(roachClient == NULL){
         LizardsNroachestypes__GameMessage disconnect_msg = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
         disconnect_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT;
         forceRoachDisconnect(&disconnect_msg, socket);
         return;
     } else {
-        cleanRoachClient(my_win, roachClient);
+        cleanRoachClient(gameState.my_win, roachClient);
         // Update the total number of roaches
-        *NroachesTotal -= roachClient->num_roaches;
+        gameState.numRoaches -= roachClient->num_roaches;
         
         //Acknowledge the disconnection
         LizardsNroachestypes__GameMessage ack_msg = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
@@ -147,7 +148,7 @@ void handleRoachDisconnect(WINDOW *my_win, RoachClient **headRoachList, LizardsN
         zmq_send(socket, buff, len, 0);
         free(buff);
         // Remove the roach client from the list
-        removeRoachClient(headRoachList, id_roach);
+        removeRoachClient(id_roach);
     }
 }
 
@@ -175,8 +176,8 @@ void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *soc
     free(buf);
 }
 
-int checkPositionforRoach(RoachClient **headRoachList, position_t position){
-    RoachClient *currentRoach = *headRoachList;
+int checkPositionforRoach(position_t position){
+    RoachClient *currentRoach = gameState.headRoachList;
     while(currentRoach != NULL){
         for (int i = 0; i < currentRoach->num_roaches; i++)
         {

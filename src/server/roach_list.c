@@ -8,6 +8,8 @@
 
 #include "roach_list.h"
 
+#include "utils.h"
+
 
 RoachClient *initRoachClient(int n_roaches, int *score, int id_roach){
     RoachClient *newRoachClient = (RoachClient *)malloc(sizeof(RoachClient));
@@ -28,13 +30,13 @@ RoachClient *initRoachClient(int n_roaches, int *score, int id_roach){
     return newRoachClient;
 }
 
-void addRoachClient(RoachClient **headRoachList, int *score, int n_roaches, int id_roach){
+void addRoachClient(int *score, int n_roaches, int id_roach){
     RoachClient *newRoachClient = initRoachClient(n_roaches, score, id_roach);
-    if(*headRoachList == NULL){
-        *headRoachList = newRoachClient;
+    if(gameState.headRoachList == NULL){
+        gameState.headRoachList = newRoachClient;
     }
     else{
-        RoachClient *currentRoachClient = *headRoachList;
+        RoachClient *currentRoachClient = gameState.headRoachList;
         while(currentRoachClient->next != NULL){
             currentRoachClient = currentRoachClient->next;
         }
@@ -42,8 +44,8 @@ void addRoachClient(RoachClient **headRoachList, int *score, int n_roaches, int 
     }
 }
 
-RoachClient* findRoachClient(RoachClient **headRoachList, int id_roach){
-    RoachClient *currentRoachClient = *headRoachList;
+RoachClient* findRoachClient(int id_roach){
+    RoachClient *currentRoachClient = gameState.headRoachList;
     while(currentRoachClient != NULL){
         if(currentRoachClient->id == id_roach){
             break;
@@ -53,14 +55,14 @@ RoachClient* findRoachClient(RoachClient **headRoachList, int id_roach){
     return currentRoachClient;
 }
 
-void removeRoachClient(RoachClient **headRoachList, int id_roach){
-    if(*headRoachList == NULL){
+void removeRoachClient(int id_roach){
+    if(gameState.headRoachList == NULL){
         return;
     }
     
-    RoachClient *temp = *headRoachList, *prev = NULL;
+    RoachClient *temp = gameState.headRoachList, *prev = NULL;
     if(temp != NULL && temp->id == id_roach){
-        *headRoachList = temp->next;
+        gameState.headRoachList = temp->next;
         free(temp);
         return;
     }
@@ -78,8 +80,8 @@ void removeRoachClient(RoachClient **headRoachList, int id_roach){
     free(temp);
 }
 
-int countRoaches(RoachClient *headRoachList){
-    RoachClient *currentRoachClient = headRoachList;
+int countRoaches(){
+    RoachClient *currentRoachClient = gameState.headRoachList;
     int count = 0;
     while(currentRoachClient != NULL){
         count += currentRoachClient->num_roaches;
@@ -88,21 +90,25 @@ int countRoaches(RoachClient *headRoachList){
     return count;
 }
 
-void printRoachList(RoachClient *headRoachList){
-    RoachClient *currentRoachClient = headRoachList;
+void printRoachList(){
+    RoachClient *currentRoachClient = gameState.headRoachList;
     while(currentRoachClient != NULL){
+        printf("Roach client %d:\n", currentRoachClient->id);
+        for(int i = 0; i < currentRoachClient->num_roaches; i++){
+            printf("Roach %d: score: %d, position: (%d, %d), direction: %d, on_board: %d\n", i, currentRoachClient->roaches[i].score, currentRoachClient->roaches[i].position.position_x, currentRoachClient->roaches[i].position.position_y, currentRoachClient->roaches[i].direction, currentRoachClient->roaches[i].on_board);
+        }
         currentRoachClient = currentRoachClient->next;
     }
 }
 
 
-void freeRoachList(RoachClient **headRoachList){
-    RoachClient *currentRoachClient = *headRoachList;
+void freeRoachList(){
+    RoachClient *currentRoachClient = gameState.headRoachList;
     RoachClient *nextRoachClient = NULL;
     while(currentRoachClient != NULL){
         nextRoachClient = currentRoachClient->next;
         free(currentRoachClient);
         currentRoachClient = nextRoachClient;
     }
-    *headRoachList = NULL;
+    gameState.headRoachList = NULL;
 }

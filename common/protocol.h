@@ -62,7 +62,7 @@ typedef struct message_t
     int wasp_index; // index of a single roach, which belongs to the roachClient
     int score_roaches[MAX_ROACHES_PER_CLIENT];
     int score_lizard;
-    int password;
+    long int password;
     char wasps_char[10];  // 
     direction_t direction;
 } message_t;

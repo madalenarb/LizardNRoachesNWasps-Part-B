@@ -45,7 +45,7 @@ typedef struct RoachClient {
  * @param n_roaches Number of roaches in the client.
  * @param id_roach Identifier for the new roach client.
  */
-void addRoachClient(RoachClient **headRoachList, int *score, int n_roaches, int id_roach);
+void addRoachClient(int *score, int n_roaches, int id_roach);
 
 /**
  * @brief Finds a roach client in the linked list.
@@ -56,9 +56,9 @@ void addRoachClient(RoachClient **headRoachList, int *score, int n_roaches, int 
  * @param id_roach Identifier of the roach client to find.
  * @return Pointer to the found RoachClient, or NULL if not found.
  */
-RoachClient* findRoachClient(RoachClient **headRoachList, int id_roach);
+RoachClient* findRoachClient(int id_roach);
 
-int countRoaches(RoachClient *headRoachList);
+int countRoaches();
 
 /**
  * @brief Frees the memory allocated for the linked list of roach clients.
@@ -67,7 +67,7 @@ int countRoaches(RoachClient *headRoachList);
  *
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  */
-void freeRoachList(RoachClient **headRoachList);
+void freeRoachList();
 
 /**
  * @brief Prints the details of all roach clients in the linked list.
@@ -76,7 +76,7 @@ void freeRoachList(RoachClient **headRoachList);
  *
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  */
-void printRoachList(RoachClient *headRoachList);
-void removeRoachClient(RoachClient **headRoachList, int id_roach);
+void printRoachList();
+void removeRoachClient(int id_roach);
 
 #endif /* ROACHE_LIST_H */

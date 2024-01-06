@@ -49,7 +49,7 @@ void new_position(LizardClient* otherLizard);
  * @param socket Pointer to the communication socket.
  * @param nClients Pointer to the total number of lizard clients connected.
  */
-void handleLizardConnect(WINDOW *my_win, LizardClient **headLizardList, message_t *m, void *socket, int *nClients);
+void handleLizardConnect(message_t *m, void *socket);
 
 /**
  * @brief Manages the movement of a lizard in the game.
@@ -63,7 +63,7 @@ void handleLizardConnect(WINDOW *my_win, LizardClient **headLizardList, message_
  * @param m Pointer to the message containing movement information.
  * @param socket Pointer to the communication socket.
  */
-void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachClient **headRoachList, message_t *m, void *socket, WaspClient **headWaspList);
+void handleLizardMovement(message_t *m, void *socket);
 
 /**
  * @brief Manages the disconnection of a lizard from the game.
@@ -77,7 +77,7 @@ void handleLizardMovement(WINDOW *my_win, LizardClient **headLizardList, RoachCl
  * @param socket Pointer to the communication socket.
  * @param nClients Pointer to the total number of lizard clients connected.
  */
-void handleLizardDisconnect(WINDOW *my_win, LizardClient **headLizardList, message_t *m, void *socket, int *nClients);
+void handleLizardDisconnect(message_t *m, void *socket);
 
 /**
  * @brief Disconnects all lizard clients at the end of the game or during shutdown.
@@ -88,6 +88,6 @@ void handleLizardDisconnect(WINDOW *my_win, LizardClient **headLizardList, messa
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  * @param socket Pointer to the communication socket.
  */
-void disconnectAllLizards(LizardClient **headLizardList, void *socket);
+void disconnectAllLizards(void *socket);
 
 #endif // LIZARD_FUNCS_H

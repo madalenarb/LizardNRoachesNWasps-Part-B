@@ -14,9 +14,10 @@ int main() {
     signal(SIGINT, handle_signal);
 
     int n = 0;
+
     void *context = zmq_ctx_new();
     void *socket = zmq_socket(context, ZMQ_REQ);
-    int rc = zmq_connect(socket, "tcp://localhost:5557");
+    int rc = zmq_connect(socket, "tcp://localhost:5555");
     if(rc != 0){
         printf("Error connecting to server\n");
         exit(1);
@@ -82,6 +83,9 @@ int main() {
         lizards_nroachestypes__game_message__init(&roach_msg);
         // Preencher os movimentos aleatórios para cada barata
         for (int i = 0; i < n_roaches; i++) {
+            if(flag_exit){
+                break;
+            }
             // Esperar um tempo aleatório antes do movimento de cada barata
            usleep(rand() % 3000000);  // Esperar até 3 segundos
 
@@ -91,16 +95,16 @@ int main() {
             switch (direction)
             {
             case LEFT:
-            printf("%d Going Left   \n", n);
+            printf("%d Roach %d: Going Left   \n", n, i);
                 break;
             case RIGHT:
-                printf("%d Going Right   \n", n);
+                printf("%d Roach %d: Going Right  \n", n, i);
                  break;
             case DOWN:
-                printf("%d Going Down   \n", n);
+                printf("%d Roach %d: Going Down   \n", n, i);
                 break;
             case UP:
-                printf("%d Going Up    \n", n);
+                printf("%d Roach %d: Going Up     \n", n, i);
                 break;
             }
 
