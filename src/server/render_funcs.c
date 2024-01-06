@@ -43,10 +43,26 @@ void renderLizardhead(WINDOW *my_win, LizardClient *otherLizard){
     wrefresh(my_win);
 }
 
+// void renderLizardTail(WINDOW *my_win, LizardClient *otherLizard){
+//     for(int i = 0; i < TAIL_LENGTH; i++){
+//         wmove(my_win, otherLizard->cauda_x[i], otherLizard->cauda_y[i]);
+//         waddch(my_win, (otherLizard->score < 50) ? '.' | A_BOLD : '*' | A_BOLD);
+//     }
+//     wrefresh(my_win);
+// }
+
 void renderLizardTail(WINDOW *my_win, LizardClient *otherLizard){
     for(int i = 0; i < TAIL_LENGTH; i++){
         wmove(my_win, otherLizard->cauda_x[i], otherLizard->cauda_y[i]);
-        waddch(my_win, (otherLizard->score < 50) ? '.' | A_BOLD : '*' | A_BOLD);
+        char charToPrint;
+        if (otherLizard->score < 0) {
+            charToPrint = ' ';
+        } else if (otherLizard->score < 50) {
+            charToPrint = '.'; 
+        } else {
+            charToPrint = '*'; 
+        }
+        waddch(my_win, charToPrint | A_BOLD);
     }
     wrefresh(my_win);
 }
