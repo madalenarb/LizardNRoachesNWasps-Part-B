@@ -9,9 +9,15 @@
 #include <unistd.h>
 #include "../../protos/c_out/protocol.pb-c.h"
 
-int main() {
+int main(int argc, char *argv[]){
     // Signal handler for Ctrl+C
     signal(SIGINT, handle_signal);
+
+    // Ask user to input address and port
+    if (argc != 3){
+        printf("Usage: wasps-client adress Port\n");
+        exit(1);
+    }
 
     int n = 0;
     void *context = zmq_ctx_new();

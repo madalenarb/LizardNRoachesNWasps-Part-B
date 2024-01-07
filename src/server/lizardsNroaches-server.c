@@ -28,13 +28,13 @@ void *run_proxy(void *args) {
 }
 
 
-void *handleLizardMessage( void *ptr ){
+void *handleLizardMessage(){
     // long int thread_number = (long int)ptr;
 
     int id_lizardClient = 0;
 
     void *responder = zmq_socket (context, ZMQ_REP);
-    int rc = zmq_connect (responder, "inproc://back-end2");
+    int rc = zmq_connect (responder, "inproc://back-end-lizard");
     assert (rc == 0);
 
 
@@ -88,13 +88,13 @@ void* publishDisplayUpdates(void *publisher){
     return NULL;
 }
 
-void *handleRoachWaspMessage( void *ptr ){
+void *handleRoachWaspMessage(){
     // long int thread_number = (long int)ptr;
     int id_roach=0;
     int id_wasp=0;
 
     void *socket_roach_wasp = zmq_socket(context, ZMQ_REP);
-    int rc = zmq_connect(socket_roach_wasp, "inproc://back-end");
+    int rc = zmq_connect(socket_roach_wasp, "inproc://back-end-roach-wasp");
     assert (rc == 0);
     while(1){
         // printWaspList();
@@ -175,26 +175,24 @@ int main (void)
     pthread_mutex_init(&roach_wasps_lock, NULL);
     context = zmq_ctx_new ();
 
-    // Initialize random numbers array
-    srand(time(NULL)); 
-    // Socket for frontend 1
+    // Socket for frontend for the roaches and wasps
     void *frontend = zmq_socket (context, ZMQ_ROUTER);
     int rc = zmq_bind (frontend, "tcp://*:5555");
     assert (rc == 0);
 
-    // Socket for frontend 2
-    void *frontend2 = zmq_socket (context, ZMQ_ROUTER);
-    rc = zmq_bind (frontend2, "tcp://*:5556");
+    // Socket for frontend for the lizards
+    void *frontend_lizard = zmq_socket (context, ZMQ_ROUTER);
+    rc = zmq_bind (frontend_lizard, "tcp://*:5556");
     assert (rc == 0);
 
-    // Socket for backend 1
-    void *backend = zmq_socket (context, ZMQ_DEALER);
-    rc = zmq_bind (backend, "inproc://back-end");
+    // Socket for backend_roaches_wasps 1
+    void *backend_roaches_wasps = zmq_socket (context, ZMQ_DEALER);
+    rc = zmq_bind (backend_roaches_wasps, "inproc://back-end-roach-wasp");
     assert (rc == 0);
 
-    // Socket for backend 2
-    void *backend2 = zmq_socket (context, ZMQ_DEALER);
-    rc = zmq_bind (backend2, "inproc://back-end2");
+    // Socket for backend_roaches_wasps 2
+    void *backend_lizard = zmq_socket (context, ZMQ_DEALER);
+    rc = zmq_bind (backend_lizard, "inproc://back-end-lizard");
     assert (rc == 0);
 
     // Socket for publisher
@@ -203,8 +201,8 @@ int main (void)
     assert (rc == 0);
 
     
-    proxy_args args1 = {frontend, backend};
-    proxy_args args2 = {frontend2, backend2};
+    proxy_args args1 = {frontend, backend_roaches_wasps};
+    proxy_args args2 = {frontend_lizard, backend_lizard};
 
     // Start worker threads
     long int worker_nbr;
@@ -241,7 +239,7 @@ int main (void)
     pthread_mutex_destroy(&roach_wasps_lock);
     zmq_ctx_destroy(context);
     zmq_close(frontend);
-    zmq_close(backend);
-    zmq_close(frontend2);
+    zmq_close(backend_roaches_wasps);
+    zmq_close(frontend_lizard);
     return 0;
 }

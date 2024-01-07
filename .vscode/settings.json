@@ -15,6 +15,9 @@
         "roaches_function.h": "c",
         "variant": "c",
         "unistd.h": "c",
-        "display.h": "c"
+        "display.h": "c",
+        "wasps_function.h": "c",
+        "lizard-funcs.h": "c",
+        "complex": "c"
     }
 }

@@ -1,5 +1,6 @@
 #include "Lizard-funcs.h"
-
+#include <unistd.h>
+#include <signal.h>
 // Global Variables
 WINDOW *input_win, *display_win;
 volatile int score = 0;
@@ -7,12 +8,21 @@ volatile int exit_flag = 0; // Flag to indicate when to exit the program
 volatile char ch;
 void *context;
 
+typedef struct {
+    char* arg1;
+    char* arg2;
+} thread_args_t;
+
 pthread_mutex_t lock;
 
 // Display Thread Function
-void *display_thread_func(void *arg) {
+void *display_thread_func(void* arg) {
+    thread_args_t *args = (thread_args_t *)arg;
+    char *argv1 = args->arg1;
     void *subscriber = zmq_socket(context, ZMQ_SUB);
-    zmq_connect(subscriber, "tcp://localhost:5557");
+    //zmq_connect(subscriber, "tcp://localhost:5557");
+    zmq_connect(subscriber, argv1); //é i
+
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
 
     pthread_mutex_lock(&display_lock);
@@ -34,9 +44,12 @@ void *display_thread_func(void *arg) {
 }
 
 // Input Thread Function
-void *input_thread_func(void *arg) {
+void *input_thread_func(void* arg) {
+    thread_args_t *args = (thread_args_t *)arg;
+    char *argv2 = args->arg2;
     void *requester = zmq_socket(context, ZMQ_REQ);
-    int rc =zmq_connect(requester, "tcp://localhost:5556");
+    //int rc =zmq_connect(requester, "tcp://localhost:5556");
+    int rc =zmq_connect(requester, argv2);
     assert(rc == 0);
 
     char direction_name[4][10] = {"UP", "DOWN", "LEFT", "RIGHT"};
@@ -48,7 +61,7 @@ void *input_thread_func(void *arg) {
     msg.ch = ch;
     msg.direction = -1;
     zmq_send(requester, &msg, sizeof(msg), 0);
-    message_t ack_msg, resp;
+    message_t ack_msg;
     ack_msg.msg_type = MSG_TYPE_ACK;
     pthread_mutex_lock(&lock);
     score = 0;
@@ -73,7 +86,6 @@ void *input_thread_func(void *arg) {
             loss = lizardsLoses(&msg);
         }
         pthread_mutex_unlock(&lock);
-        
         key = getch();
         
         select_direction(key, &msg);
@@ -105,8 +117,15 @@ void *input_thread_func(void *arg) {
 }
 
 // Main Function
-int main() {
-
+//int main() {
+int main(int argc, char *argv[]){
+    signal(SIGINT, handle_signal);
+    if (argc != 3){
+    {
+         printf("Usage: lizard-client adress Port\n");
+        exit(0);
+    }
+    }
     do{
         printf("what is your character(a..z)?: ");
         ch = getchar();
@@ -123,6 +142,8 @@ int main() {
     box(input_win, 0, 0);
     wrefresh(input_win);
 
+    
+
     // Initialize windows
     display_win = newwin(WINDOW_HEIGHT, WINDOW_WIDTH, 3, 0); // Large window for display
     input_win = newwin(3, WINDOW_WIDTH, 0, 0); // Small window for input
@@ -134,9 +155,11 @@ int main() {
 
     // Create threads
     pthread_t display_thread, input_thread;
-
-    pthread_create(&display_thread, NULL, display_thread_func, display_win);
-    pthread_create(&input_thread, NULL, input_thread_func, input_win);
+    thread_args_t args;
+    args.arg1 = argv[1];
+    args.arg2 = argv[2];
+    pthread_create(&display_thread, NULL, display_thread_func, argv);
+    pthread_create(&input_thread, NULL, input_thread_func, argv);
 
     // Wait for threads to finish
     pthread_join(display_thread, NULL);
