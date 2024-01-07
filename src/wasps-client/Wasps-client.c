@@ -107,7 +107,9 @@ int main() {
                 printf("Error unpacking message\n");
                 exit(1);
             }
-            if(ack_msg->msg_type == MSG_TYPE_LIZARD_DISCONNECT || flag_exit == 1){
+            printf("Received message type: %d\n", ack_msg->msg_type);
+            if(ack_msg->msg_type == LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT || flag_exit == 1){
+                printf("Received disconnect from server.\n");
                 LizardsNroachestypes__GameMessage disconnect_msg;
                 lizards_nroachestypes__game_message__init(&disconnect_msg);
                 disconnect_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT;
@@ -120,7 +122,7 @@ int main() {
                 free(buf);
                 zmq_close(socket);
                 printf("Bye\n");
-                break;
+                exit(1);
             }      
         }
     } while (!flag_exit && ack_msg->msg_type != MSG_TYPE_LIZARD_DISCONNECT);

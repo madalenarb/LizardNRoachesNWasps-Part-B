@@ -11,6 +11,9 @@
 #include <ncurses.h>
 #include "../../common/protocol.h"  
 
+pthread_mutex_t display_lock; // Mutex for display management
+
+
 /**
  * @brief Processes keyboard input to determine the direction of lizard movement.
  * 

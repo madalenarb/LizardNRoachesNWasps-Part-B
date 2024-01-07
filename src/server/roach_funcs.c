@@ -11,7 +11,7 @@
 
 void forceRoachDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
     m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT;
-    size_t len = lizards_nroachestypes__game_message__pack(m, NULL);
+    size_t len = lizards_nroachestypes__game_message__get_packed_size(m);
     void *buf = malloc(len);
     lizards_nroachestypes__game_message__pack(m, buf);
     zmq_send(socket, buf, len, 0);

@@ -231,7 +231,9 @@ void handleLizardMovement(message_t *m, void *socket){
     LizardClient *currentLizard = findLizardClient(m->ch);
     int flag = 0;
     int stingOccurred = 0;
-    if(m->password != currentLizard->password){
+    if(currentLizard == NULL){
+        forceLizardDisconnect(m, socket);
+    } else if(m->password != currentLizard->password){
         forceLizardDisconnect(m, socket);
     } else {
         if(currentLizard != NULL){

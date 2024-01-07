@@ -10,7 +10,7 @@
 
 void forceWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
     m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT;
-    size_t len = lizards_nroachestypes__game_message__pack(m, NULL);
+    size_t len = lizards_nroachestypes__game_message__get_packed_size(m);
     void *buf = malloc(len);
     lizards_nroachestypes__game_message__pack(m, buf);
     zmq_send(socket, buf, len, 0);
@@ -106,8 +106,9 @@ void handleWaspMovement(LizardsNroachestypes__GameMessage *m, void *socket){
     WaspClient *waspClient = findWaspClient(id_wasp);  // Localize the wasp client
 
     if(waspClient == NULL){
-        forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
         pthread_mutex_unlock(&sharedGameState);
+
+        forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
     } else {        
         // Define the direction of the wasp
         stingOccurred = WaspStingsLizard(NULL, waspClient);

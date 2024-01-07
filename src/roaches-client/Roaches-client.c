@@ -133,6 +133,7 @@ int main() {
                 printf("Error unpacking message2\n");
                 exit(1);
             }
+            printf("Received message type: %d\n", ack_msg->msg_type);
             if (ack_msg->msg_type == LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT) {
                 printf("Received disconnect from server.\n");
                 lizards_nroachestypes__game_message__free_unpacked(ack_msg, NULL);
@@ -145,7 +146,8 @@ int main() {
 
         }
         if(flag_exit){
-            LizardsNroachestypes__GameMessage disconnect_msg = LIZARDS_NROACHESTYPES__GAME_MESSAGE__INIT;
+            LizardsNroachestypes__GameMessage disconnect_msg;
+            lizards_nroachestypes__game_message__init(&disconnect_msg);
             disconnect_msg.msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT;
             disconnect_msg.has_index = true;
             disconnect_msg.index = index;

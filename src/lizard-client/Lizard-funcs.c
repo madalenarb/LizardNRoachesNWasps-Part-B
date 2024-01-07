@@ -121,24 +121,34 @@ void updateDisplay(WINDOW *display_win, void *subscriber){
         gameState = NULL;
     }
     
+    pthread_mutex_lock(&display_lock);
     werase(display_win);
 
     box(display_win, 0 , 0);
+    pthread_mutex_unlock(&display_lock);
 
     //Render the entities
     if(totalEntities > 0){
         for(int i = 0; i < totalEntities; i++){
             if(gameState[i].entity_type == LIZARD){
+                pthread_mutex_lock(&display_lock);
                 renderLizard(display_win, gameState[i]);
+                pthread_mutex_unlock(&display_lock);
             } else if(gameState[i].entity_type == ROACH){
+                pthread_mutex_lock(&display_lock);
                 renderRoach(display_win, gameState[i]);
+                pthread_mutex_unlock(&display_lock);
             } else if(gameState[i].entity_type == WASP){
+                pthread_mutex_lock(&display_lock);
                 renderWasp(display_win, gameState[i]);
+                pthread_mutex_unlock(&display_lock);
             }
         }
     }
 
+    pthread_mutex_lock(&display_lock);
     wrefresh(display_win);
+    pthread_mutex_unlock(&display_lock);
 }
 
 

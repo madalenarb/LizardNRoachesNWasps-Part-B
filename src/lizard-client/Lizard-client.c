@@ -8,7 +8,6 @@ volatile char ch;
 void *context;
 
 pthread_mutex_t lock;
-pthread_mutex_t display_lock; // Mutex for display management
 
 // Display Thread Function
 void *display_thread_func(void *arg) {
@@ -22,9 +21,7 @@ void *display_thread_func(void *arg) {
     pthread_mutex_unlock(&display_lock);
     while (!exit_flag) {
         pthread_mutex_lock(&lock);
-        pthread_mutex_lock(&display_lock);
         updateDisplay(display_win, subscriber);
-        pthread_mutex_unlock(&display_lock);
         pthread_mutex_unlock(&lock);
         usleep(100); // Adjust the sleep duration as needed
     }
