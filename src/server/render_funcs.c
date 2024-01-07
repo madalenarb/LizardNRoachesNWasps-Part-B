@@ -9,11 +9,13 @@
 #include "render_funcs.h"   
 
 void updateRoachesVisibility(){
+    printf("updateRoachesVisibility\n");
     RoachClient *currentRoachClient = gameState.headRoachList;
 
     while(currentRoachClient != NULL){
         for(int i = 0; i < currentRoachClient->num_roaches; i++){
             if(currentRoachClient->roaches[i].on_board == 0){
+                printf("time elapsed: %f\n", difftime(elapsed_time, currentRoachClient->roaches[i].eaten_time));
                 if(difftime(elapsed_time, currentRoachClient->roaches[i].eaten_time) >= 5){
                     currentRoachClient->roaches[i].on_board = 1;
                     currentRoachClient->roaches[i].position.position_x = rand() % (WINDOW_HEIGHT-2) + 1;
@@ -219,8 +221,8 @@ void updateAndRenderWasps(){
 void updateAndRenderEverything(){
     pthread_mutex_lock(&sharedGameState);
     resetWindow();
-    updateAndRenderLizardsTails();
     updateRoachesVisibility();
+    updateAndRenderLizardsTails();
     updateAndRenderRoaches();
     updateAndRenderLizardsHeads();
     updateAndRenderWasps();

@@ -82,6 +82,7 @@ void *handleLizardMessage(){
 
 void* publishDisplayUpdates(void *publisher){
     while(1){
+        updateTimer();
         handleDisplayUpdate(publisher);
         usleep(100);
     }
@@ -159,7 +160,7 @@ void *handleRoachWaspMessage(){
         free(buff);
         
         updateAndRenderEverything();
-
+    
         lizards_nroachestypes__game_message__free_unpacked(received_msg, NULL);
         zmq_msg_close(&zmq_msg);
     }
@@ -169,6 +170,7 @@ void *handleRoachWaspMessage(){
 
 int main (void)
 {
+    initializeTimer();
     // Initialize mutex and context
     pthread_mutex_init(&lizard_lock, NULL);
     pthread_mutex_init(&sharedGameState, NULL);
