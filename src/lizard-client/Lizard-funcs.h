@@ -23,5 +23,12 @@ void select_direction(int ch, message_t *m);
 
 
 int lizardsLoses(message_t *m);
+void select_direction(int ch, message_t *m);
+int lizardsLoses(message_t *m);
+position_t* DeriveTailPosition(position_t head_position, direction_t direction);
+void renderLizard(WINDOW *display_win, display_update_t game_update);
+void renderRoach(WINDOW *display_win, display_update_t game_update);
+void renderWasp(WINDOW *display_win, display_update_t game_update);
+void updateDisplay(WINDOW *display_win, void *subscriber);
 
 #endif  // LIZARD_FUNCS_H

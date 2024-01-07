@@ -56,7 +56,6 @@ void updateDisplay(WINDOW *display_win, void *subscriber){
     } else {
         gameState = NULL;
     }
-    display_win = newwin(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
     werase(display_win);
     box(display_win, 0 , 0);
 

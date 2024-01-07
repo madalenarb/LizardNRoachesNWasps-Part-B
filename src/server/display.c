@@ -59,7 +59,7 @@ void handleDisplayUpdate(void *socket_display)
         }
     }
     
-    if(gameState.headLizardList == NULL && gameState.headRoachList == NULL){
+    if(gameState.headLizardList == NULL && gameState.headRoachList == NULL && gameState.headWaspList == NULL){
         zmq_send(socket_display, &totalEntities, sizeof(int), 0);
         return;
     }
