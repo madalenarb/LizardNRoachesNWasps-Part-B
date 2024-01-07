@@ -1,4 +1,5 @@
 #include "display.h"
+#include "utils.h"
 
 void populateLizardUpdate(LizardClient *lizardClient, display_update_t *gameState)
 {
@@ -31,40 +32,40 @@ void populateRoachUpdate(RoachClient *roachClient, display_update_t *gameState)
  * @param headRoachList The head of the roach client linked list
  * 
 */
-void handleDisplayUpdate(void *socket_display, LizardClient *headLizardList, RoachClient *headRoachList)
-{
-    LizardClient *currentLizardClient = NULL;
-    RoachClient *currentRoachClient = NULL;
+void handleDisplayUpdate(void *socket_display)
+{   
+    LizardClient *currentLizardClient = gameState.headLizardList;
+    RoachClient *currentRoachClient = gameState.headRoachList;
 
-    int totalEntities = countLizards(headLizardList) + countRoaches(headRoachList);
+    int totalEntities = countLizards(gameState.headLizardList) + countRoaches(gameState.headRoachList);
     int i = 0;
 
-    display_update_t *gameState = (display_update_t *)malloc(sizeof(display_update_t) * totalEntities);
+    display_update_t *gameStates = (display_update_t *)malloc(sizeof(display_update_t) * totalEntities);
     for(int i = 0; i < totalEntities; i++){
-        gameState[i].entity_type = NOTHING;
-        gameState[i].roaches_num = 0;
+        gameStates[i].entity_type = NOTHING;
+        gameStates[i].roaches_num = 0;
         for(int j = 0; j < MAX_ROACHES_PER_CLIENT; j++){
-            gameState[i].roach_score[j] = 0;
+            gameStates[i].roach_score[j] = 0;
         }
     }
     
-    if(headLizardList == NULL && headRoachList == NULL){
+    if(gameState.headLizardList == NULL && gameState.headRoachList == NULL){
         return;
     }
 
-    if(headLizardList != NULL)
-        currentLizardClient = headLizardList;
+    if(gameState.headLizardList != NULL)
+        currentLizardClient = gameState.headLizardList;
     
     while(currentLizardClient != NULL){
-        populateLizardUpdate(currentLizardClient, &gameState[i++]);
+        populateLizardUpdate(currentLizardClient, &gameStates[i++]);
         currentLizardClient = currentLizardClient->next;
     }
 
-    if(headRoachList != NULL)
-        currentRoachClient = headRoachList;
+    if(gameState.headRoachList != NULL)
+        currentRoachClient = gameState.headRoachList;
 
     while(currentRoachClient != NULL){
-        populateRoachUpdate(currentRoachClient, &gameState[i++]);        
+        populateRoachUpdate(currentRoachClient, &gameStates[i++]);        
         currentRoachClient = currentRoachClient->next;
     }
 
@@ -72,7 +73,7 @@ void handleDisplayUpdate(void *socket_display, LizardClient *headLizardList, Roa
     zmq_send(socket_display, &totalEntities, sizeof(int), 0);
 
     //Send full game state to display
-    zmq_send(socket_display, gameState, sizeof(display_update_t) * totalEntities, 0);
+    zmq_send(socket_display, gameStates, sizeof(display_update_t) * totalEntities, 0);
 
-    free(gameState);
+    free(gameStates);
 }

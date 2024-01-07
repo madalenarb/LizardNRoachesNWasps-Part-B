@@ -19,6 +19,7 @@
 #include "Lizard_list.h"
 
 void *context;
+void *publisher;
 
 // Function for running the proxy in a separate thread
 void *run_proxy(void *args) {
@@ -71,7 +72,7 @@ void *handleLizardMessage( void *ptr ){
             break;
         }
         zmq_send(responder, &lizards_msg, sizeof(lizards_msg), 0);
-        updateAndRenderEverything();
+        updateAndRenderEverything(publisher);
     }
     zmq_close (responder);
     return 0;
@@ -149,7 +150,7 @@ void *handleRoachWaspMessage( void *ptr ){
         
         lizards_nroachestypes__game_message__free_unpacked(received_msg, NULL);
         zmq_msg_close(&zmq_msg);
-        updateAndRenderEverything();
+        updateAndRenderEverything(publisher);
     }
     return 0;
 }
@@ -184,6 +185,13 @@ int main (void)
     void *backend2 = zmq_socket (context, ZMQ_DEALER);
     rc = zmq_bind (backend2, "inproc://back-end2");
     assert (rc == 0);
+
+
+    // Initialize the PUB socket to send display updates to the clients
+    void *publisher = zmq_socket (context, ZMQ_PUB);
+    rc = zmq_bind (publisher, "tcp://*:5557");
+    assert (rc == 0);
+
     
     proxy_args args1 = {frontend, backend};
     proxy_args args2 = {frontend2, backend2};

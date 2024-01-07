@@ -74,6 +74,7 @@ void new_position(LizardClient* otherLizard){
             }
         }
         break;
+
     case LEFT:
         (otherLizard->position.position_y) --;
         for (i=0;i<5;i++) //a cauda fica na mesma direção da cabeça

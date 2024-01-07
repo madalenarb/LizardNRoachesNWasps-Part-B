@@ -40,6 +40,7 @@ void setupWindows(){
 }
 
 void resetWindow(){
+    gameState.my_win = newwin(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
     wclear(gameState.my_win);
     box(gameState.my_win, 0 , 0);
     wrefresh(gameState.my_win);
@@ -216,7 +217,7 @@ void updateAndRenderWasps(){
 }
 
 
-void updateAndRenderEverything(){
+void updateAndRenderEverything(void *socket_display){
     pthread_mutex_lock(&sharedGameState);
     resetWindow();
     updateRoachesVisibility();
@@ -224,5 +225,6 @@ void updateAndRenderEverything(){
     updateAndRenderRoaches();
     updateAndRenderLizardsHeads();
     updateAndRenderWasps();
+    handleDisplayUpdate(socket_display);
     pthread_mutex_unlock(&sharedGameState);
 }

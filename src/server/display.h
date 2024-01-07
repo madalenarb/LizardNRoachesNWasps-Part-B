@@ -3,4 +3,4 @@
 #include "Lizard_list.h"
 #include "roach_list.h"
 
-void handleDisplayUpdate(void *socket_display, LizardClient *headLizardList, RoachClient *headRoachList);
+void handleDisplayUpdate(void *socket_display);

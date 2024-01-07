@@ -13,6 +13,7 @@
 #include "../../common/constants.h"
 
 #include "roach_list.h"
+#include "display.h"
 #include "wasp_list.h"
 #include "Lizard_list.h"
 #include "lizards_funcs.h"
@@ -178,5 +179,5 @@ void updateAndRenderWasps();
 */
 void renderRoaches(RoachClient *roachClient);
 
-void updateAndRenderEverything();
+void updateAndRenderEverything(void *socket_display);
 #endif // RENDER_FUNCS_H

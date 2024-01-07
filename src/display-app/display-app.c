@@ -69,7 +69,7 @@ int main()
 {
     void *context = zmq_ctx_new();
     void *subscriber = zmq_socket(context, ZMQ_SUB);
-    zmq_connect(subscriber, "tcp://localhost:5556");
+    zmq_connect(subscriber, "tcp://localhost:5557");
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
 
     initscr();
