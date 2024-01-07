@@ -19,10 +19,14 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
+    // Build new server name
+    char server_name[256];
+    sprintf(server_name, "tcp://%s:%s", argv[1], argv[2]);
+
     int n = 0;
     void *context = zmq_ctx_new();
     void *socket = zmq_socket(context, ZMQ_REQ);
-    int rc = zmq_connect(socket, "tcp://localhost:5555");
+    int rc = zmq_connect(socket, server_name);
     if(rc != 0){
         printf("Error connecting to server\n");
         exit(1);

@@ -17,11 +17,8 @@ pthread_mutex_t lock;
 
 // Display Thread Function
 void *display_thread_func(void* arg) {
-    thread_args_t *args = (thread_args_t *)arg;
-    char *argv1 = args->arg1;
     void *subscriber = zmq_socket(context, ZMQ_SUB);
-    //zmq_connect(subscriber, "tcp://localhost:5557");
-    zmq_connect(subscriber, argv1); //é i
+    zmq_connect(subscriber, "tcp://localhost:5557");
 
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
 
@@ -45,11 +42,10 @@ void *display_thread_func(void* arg) {
 
 // Input Thread Function
 void *input_thread_func(void* arg) {
-    thread_args_t *args = (thread_args_t *)arg;
-    char *argv2 = args->arg2;
+    char* server_name = (char*)arg;
     void *requester = zmq_socket(context, ZMQ_REQ);
-    //int rc =zmq_connect(requester, "tcp://localhost:5556");
-    int rc =zmq_connect(requester, argv2);
+    int rc =zmq_connect(requester, "tcp://localhost:5556");
+    // int rc =zmq_connect(requester, argv2);
     assert(rc == 0);
 
     char direction_name[4][10] = {"UP", "DOWN", "LEFT", "RIGHT"};
@@ -132,6 +128,15 @@ int main(int argc, char *argv[]){
         ch = tolower(ch);  
     } while (!isalpha(ch));
 
+    if(argc != 3){
+        printf("Usage: lizard-client adress Port\n");
+        exit(0);
+    }
+
+    // Build new server name
+    char server_name[256];
+    sprintf(server_name, "tcp://%s:%s", argv[1], argv[2]);
+
     // Initialize ncurses
     initscr();
     cbreak();
@@ -155,11 +160,9 @@ int main(int argc, char *argv[]){
 
     // Create threads
     pthread_t display_thread, input_thread;
-    thread_args_t args;
-    args.arg1 = argv[1];
-    args.arg2 = argv[2];
-    pthread_create(&display_thread, NULL, display_thread_func, argv);
-    pthread_create(&input_thread, NULL, input_thread_func, argv);
+
+    pthread_create(&display_thread, NULL, display_thread_func, NULL);
+    pthread_create(&input_thread, NULL, input_thread_func, (void*)server_name);
 
     // Wait for threads to finish
     pthread_join(display_thread, NULL);
