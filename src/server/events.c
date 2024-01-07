@@ -18,7 +18,7 @@ int lizardHitsLizard(LizardClient *currentLizard){
                 new_score = (otherLizard->score + currentLizard->score)/2;
                 cleanLizard(gameState.my_win, currentLizard);
                 lizardTailOrientation(currentLizard);
-                renderLizardTail(gameState.my_win, currentLizard);
+                renderLizardTail(currentLizard);
                 otherLizard->score = new_score;
                 currentLizard->score = new_score;
 
@@ -39,7 +39,7 @@ void lizardEatsRoach(LizardClient *currentLizard){
             if(comparePosition(currentLizard->position, roachClient->roaches[i].position)){
                 currentLizard->score += roachClient->roaches[i].score;
 
-                cleanRoach(gameState.my_win, roachClient, i);
+                cleanRoach(roachClient, i);
                 roachClient->roaches[i].on_board = 0;
                 roachClient->roaches[i].eaten_time = elapsed_time;
             }
@@ -60,7 +60,7 @@ int WaspStingsLizard(LizardClient *currentLizard, WaspClient *currentWasp){
                 if(comparePosition(nextPositionWasp, lizardClient->position)){
                     lizardClient->score -= 10;
                     stingOccurred = 1;
-                    printf("Lizard %c stung by wasp %d\n", lizardClient->id, i);
+                    // printf("Lizard %c stung by wasp %d\n", lizardClient->id, i);
                 }
                 lizardClient = lizardClient->next;
             }
@@ -74,7 +74,8 @@ int WaspStingsLizard(LizardClient *currentLizard, WaspClient *currentWasp){
                 if(comparePosition(nextPositionLizard, waspClient->wasps[i].position)){
                     cleanLizard(gameState.my_win, currentLizard);
                     lizardTailOrientation(currentLizard);
-                    renderLizardhead(gameState.my_win, currentLizard);
+                    renderLizardTail(currentLizard);
+                    renderLizardhead(currentLizard);
                     currentLizard->score -= 10;
                     stingOccurred = 1;
                 }

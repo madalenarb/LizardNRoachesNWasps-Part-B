@@ -27,7 +27,7 @@
  *
  * @param my_win Pointer to the window structure to be initialized.
  */
-void setupWindows(WINDOW **my_win);
+void setupWindows();
 
 /**
  * @brief Updates and renders the heads of all lizard clients.
@@ -37,7 +37,7 @@ void setupWindows(WINDOW **my_win);
  * @param my_win Pointer to the game window.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void updateAndRenderLizardsHeads(WINDOW *my_win, LizardClient *headLizardList);
+void updateAndRenderLizardsHeads();
 
 /**
  * @brief Updates and renders the tails of all lizard clients.
@@ -47,7 +47,7 @@ void updateAndRenderLizardsHeads(WINDOW *my_win, LizardClient *headLizardList);
  * @param my_win Pointer to the game window.
  * @param headLizardList Pointer to the head of the linked list of lizard clients.
  */
-void updateAndRenderLizardsTails(WINDOW *my_win, LizardClient *headLizardList);
+void updateAndRenderLizardsTails();
 
 /**
  * @brief Updates and renders a single lizard.
@@ -90,7 +90,7 @@ void renderRoach(int id, RoachClient *roachClient);
  * @param my_win Pointer to the game window.
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  */
-void updateAndRenderRoaches(WINDOW *my_win, RoachClient *headRoachList);
+void updateAndRenderRoaches();
 
 /**
  * @brief Cleans the previous position of a lizard on the game window.
@@ -110,7 +110,7 @@ void cleanLizard(WINDOW *my_win, LizardClient *otherLizard);
  * @param my_win Pointer to the game window.
  * @param otherLizard Pointer to the LizardClient structure.
  */
-void renderLizardhead(WINDOW *my_win, LizardClient *otherLizard);
+void renderLizardhead(LizardClient *otherLizard);
 
 /**
  * @brief Renders the tail of a lizard client.
@@ -120,7 +120,7 @@ void renderLizardhead(WINDOW *my_win, LizardClient *otherLizard);
  * @param my_win Pointer to the game window.
  * @param otherLizard Pointer to the LizardClient structure.
  */
-void renderLizardTail(WINDOW *my_win, LizardClient *otherLizard);
+void renderLizardTail(LizardClient *otherLizard);
 
 
 /**
@@ -142,7 +142,7 @@ void lizardEatsRoach(LizardClient *currentLizard);
  * @param headRoachList Pointer to the head of the linked list of roach clients.
  * @param id_roach The ID of the roach client to update visibility for.
  */
-void updateRoachesVisibility(int id_roach);
+void updateRoachesVisibility();
 
 
 /**
@@ -177,4 +177,6 @@ void updateAndRenderWasps();
  * @param roachClient Pointer to the RoachClient structure.
 */
 void renderRoaches(RoachClient *roachClient);
+
+void updateAndRenderEverything();
 #endif // RENDER_FUNCS_H

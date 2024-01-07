@@ -46,7 +46,7 @@ void new_position_roaches(RoachClient *roachClient, int id);
  * @param roachClient Pointer to the RoachClient structure.
  * @param id Identifier of the roach within the RoachClient.
  */
-void cleanRoach(WINDOW *my_win, RoachClient *roachClient, int id);
+void cleanRoach(RoachClient *roachClient, int id);
 
 /**
  * @brief Handles the connection of a new roach client to the server.
@@ -88,7 +88,7 @@ void handleRoachMovement(LizardsNroachestypes__GameMessage *m, void *socket);
  * @param socket Pointer to the communication socket.
  * @param NroachesTotal Pointer to the total number of roaches in the game.
  */
-void disconnectAllRoaches(WINDOW *my_win, RoachClient **headRoachList, void *socket);
+void disconnectAllRoaches(void *socket);
 
 /**
  * @brief Renders the head of a roach client.

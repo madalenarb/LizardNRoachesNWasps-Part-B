@@ -39,3 +39,26 @@ void select_direction(int ch, message_t *m){
     }
 }
 
+int lizardsLoses(message_t *m){
+
+    for(int i = 0; i < 10; i++){
+        clear();
+        printw("You lost the game. Waiting %d seconds to reconnect...\n", 10-i);
+        refresh();
+        sleep(1);
+    }
+
+    clear();
+    printw("Press 'r' to reconnect or any other key to exit\n", 0, 0);
+    refresh();
+    int key = getch();
+    if(key == 'r'){
+        m->msg_type = MSG_TYPE_LIZARD_RECONNECT;
+        clear();
+        refresh();
+    }else{
+        m->msg_type = MSG_TYPE_LIZARD_DISCONNECT;
+        return 1;
+    }
+    return 0;
+}

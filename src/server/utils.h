@@ -10,11 +10,11 @@
 
 #include "render_funcs.h"
 
-pthread_mutex_t lock;
-pthread_mutex_t lizard_lock;
-pthread_mutex_t sharedGameState;
-//pthread_mutex_t roach_lock;
-//pthread_mutex_t wasp_lock;
+// Mutexes
+pthread_mutex_t lock; // Mutex to control access to messages
+pthread_mutex_t lizard_lock; // Mutex to control access to lizard related variables
+pthread_mutex_t sharedGameState; // Mutex to control access to shared game state
+pthread_mutex_t roach_wasps_lock; // Mutex to control access to roach and wasp related variables
 
 typedef struct GameState{
     WINDOW *my_win;
@@ -40,7 +40,6 @@ typedef struct {
 position_t auxNextPosition(position_t position, direction_t direction);
 int isPositionValid(position_t position);
 int comparePosition(position_t position1, position_t position2);
-void updateGameState(GameState* gameState, LizardClient* headLizardList, RoachClient* headRoachList, WaspClient* headWaspList);
-void initGameState(GameState* gameState);
+void initGameState();
 void printGameState();
 #endif // UTILS_H

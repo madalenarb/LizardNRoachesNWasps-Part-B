@@ -90,4 +90,7 @@ void handleLizardDisconnect(message_t *m, void *socket);
  */
 void disconnectAllLizards(void *socket);
 
+
+void lizardLost(message_t *m, char ch);
+
 #endif // LIZARD_FUNCS_H

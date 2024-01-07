@@ -60,22 +60,16 @@ int comparePosition(position_t position1, position_t position2){
     return 0;
 }
 
-void updateGameState(GameState* gameState, LizardClient* headLizardList, RoachClient* headRoachList, WaspClient* headWaspList){
-    gameState->headLizardList = headLizardList;
-    gameState->headRoachList = headRoachList;
-    gameState->headWaspList = headWaspList;
-}
-
-void initGameState(GameState* gameState){
-    // setupWindows(&gameState->my_win);
-    gameState->headLizardList = NULL;
-    gameState->headRoachList = NULL;
-    gameState->headWaspList = NULL;
-    gameState->numLizardsClients = 0;
-    gameState->numRoachesClients = 0;
-    gameState->numRoaches = 0;
-    gameState->numWaspsClients = 0;
-    gameState->numWasps = 0;
+void initGameState(){
+    setupWindows();
+    gameState.headLizardList = NULL;
+    gameState.headRoachList = NULL;
+    gameState.headWaspList = NULL;
+    gameState.numLizardsClients = 0;
+    gameState.numRoachesClients = 0;
+    gameState.numRoaches = 0;
+    gameState.numWaspsClients = 0;
+    gameState.numWasps = 0;
 }
 
 void printGameState(){

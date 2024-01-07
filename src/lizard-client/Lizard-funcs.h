@@ -21,4 +21,7 @@
  */
 void select_direction(int ch, message_t *m);
 
+
+int lizardsLoses(message_t *m);
+
 #endif  // LIZARD_FUNCS_H

@@ -16,49 +16,12 @@
 #include "lizards_funcs.h"
 #include "wasp_funcs.h"
 
-#define LENGTH_ARRAY 100000
-int random_numbers[LENGTH_ARRAY];
-int prime_array[LENGTH_ARRAY]; // exercise 5
-int prime_count = 0;
-int next_random_index = 0;
-pthread_mutex_t lock;
-pthread_mutex_t sharedNumberLock;
-//void *context;
+#include "Lizard_list.h"
+
 void *context;
-
-typedef struct SharedNumbers {
-    int number;
-    int isShared;
-    int count;
-} SharedNumbers;
-
-
-SharedNumbers sharedNumber = {0, 0, 0};
-/**
- * @brief funcao que verifica se um número é primo
- * 
- * @param value valor a verificar se é primo
- * @return int 1 se value for primo 0, se não for primo
- */
-int verify_prime( int value){
-    int divisor = 2;
-    if(value < 4){
-        return 1;
-    }
-    while (value%divisor != 0){
-        divisor ++;
-    }
-    if (value == divisor){
-        return 1;
-    }else{
-        return 0;
-    }
-}
-
 
 // Function for running the proxy in a separate thread
 void *run_proxy(void *args) {
-    printf("Starting proxy...\n");
     proxy_args *proxyArgs = (proxy_args *)args;
     zmq_proxy(proxyArgs->frontend, proxyArgs->backend, NULL);
     return NULL;
@@ -66,7 +29,7 @@ void *run_proxy(void *args) {
 
 
 void *handleLizardMessage( void *ptr ){
-    long int thread_number = (long int)ptr;
+    // long int thread_number = (long int)ptr;
 
     int id_lizardClient = 0;
 
@@ -74,41 +37,41 @@ void *handleLizardMessage( void *ptr ){
     int rc = zmq_connect (responder, "inproc://back-end2");
     assert (rc == 0);
 
-    printf("Thread %ld ready\n", thread_number);
     while (1) {
         message_t lizards_msg;
         zmq_recv(responder, &lizards_msg, sizeof(lizards_msg), 0);
-        printf("Thread %ld received message type %d\n", thread_number, lizards_msg.msg_type);
-        pthread_mutex_lock(&lock);
+        LizardClient *lizardClient = findLizardClient(lizards_msg.ch);
         // Process the message based on its type
         switch (lizards_msg.msg_type)
         {
         case MSG_TYPE_LIZARD_CONNECT:
             id_lizardClient++;
-            printf("Lizard client %d connected\n", id_lizardClient);
             // Handle lizard connect
             handleLizardConnect(&lizards_msg, responder);
-            printf("Lizard client %d password: %ld\n", id_lizardClient, lizards_msg.password);
 
-            printGameState();
+            // printGameState();
             break;
 
         case MSG_TYPE_LIZARD_MOVEMENT:
-            printf("Lizard client %c moved %d\n", lizards_msg.ch, lizards_msg.direction);
             // Handle lizard movement
             handleLizardMovement(&lizards_msg, responder);
-            printGameState();
+            // printGameState();
             break;
 
         case MSG_TYPE_LIZARD_DISCONNECT:
-            printf("Lizard client %d disconnected\n", id_lizardClient);
             // Handle lizard disconnect
             handleLizardDisconnect(&lizards_msg, responder);
-            printGameState();
+            // printGameState();
+            break;
+
+        case MSG_TYPE_LIZARD_RECONNECT:
+            lizardClient->score = 0;
+            renderLizardhead(lizardClient);
+            renderLizardTail(lizardClient);
             break;
         }
-        pthread_mutex_unlock(&lock);
         zmq_send(responder, &lizards_msg, sizeof(lizards_msg), 0);
+        updateAndRenderEverything();
     }
     zmq_close (responder);
     return 0;
@@ -116,7 +79,7 @@ void *handleLizardMessage( void *ptr ){
 }
 
 void *handleRoachWaspMessage( void *ptr ){
-    long int thread_number = (long int)ptr;
+    // long int thread_number = (long int)ptr;
     int id_roach=0;
     int id_wasp=0;
 
@@ -124,7 +87,7 @@ void *handleRoachWaspMessage( void *ptr ){
     int rc = zmq_connect(socket_roach_wasp, "inproc://back-end");
     assert (rc == 0);
     while(1){
-        printWaspList();
+        // printWaspList();
         zmq_msg_t zmq_msg;
         zmq_msg_init(&zmq_msg);
         int msg_len = zmq_recvmsg(socket_roach_wasp, &zmq_msg, 0);
@@ -133,27 +96,23 @@ void *handleRoachWaspMessage( void *ptr ){
             printf("Error unpacking message\n");
             exit(1);
         }
-        printf("Thread %ld received message type %d\n", thread_number, received_msg->msg_type);
         // Handling different message types
         int msg_type = received_msg->msg_type;
         switch (msg_type) {
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_CONNECT:
                 id_roach++;
-                printf("Roach client %d connected\n", id_roach);
                 // Handle roaches connect
                 handleRoachesConnect(received_msg, id_roach, socket_roach_wasp);
-                printRoachList();
+                // printRoachList();
                 break;
             
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_MOVEMENT:
-                printf("Roach client %d moved %d\n", received_msg->index, received_msg->direction);
                 // Handle roaches movement
                 handleRoachMovement(received_msg, socket_roach_wasp);
-                printRoachList();
+                // printRoachList();
                 break;
 
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ROACHES_DISCONNECT:
-                printf("Roach client %d disconnected\n", id_roach);
                 // Handle roaches disconnect
                 handleRoachDisconnect(received_msg, socket_roach_wasp);
                 break;
@@ -161,18 +120,15 @@ void *handleRoachWaspMessage( void *ptr ){
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_CONNECT:
                 // Handle wasps connect
                 id_wasp++;
-                printf("Wasp client %d connected\n", id_wasp);
                 handleWaspsConnect(received_msg, socket_roach_wasp, id_wasp);
                 break;
 
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_MOVEMENT:
-                printf("Wasp client %d moved %d\n", received_msg->index, received_msg->direction);
                 // Handle wasps movement
                 handleWaspMovement(received_msg, socket_roach_wasp);
                 break;
 
             case LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT:
-                printf("Wasp client %d disconnected\n", id_wasp);
                 // Handle wasps disconnect
                 handleWaspDisconnect(received_msg, socket_roach_wasp);
                 break;
@@ -193,7 +149,7 @@ void *handleRoachWaspMessage( void *ptr ){
         
         lizards_nroachestypes__game_message__free_unpacked(received_msg, NULL);
         zmq_msg_close(&zmq_msg);
-
+        updateAndRenderEverything();
     }
     return 0;
 }
@@ -202,16 +158,13 @@ void *handleRoachWaspMessage( void *ptr ){
 int main (void)
 {
     // Initialize mutex and context
-    pthread_mutex_init(&lock, NULL);
-    pthread_mutex_init(&sharedNumberLock, NULL);
+    pthread_mutex_init(&lizard_lock, NULL);
+    pthread_mutex_init(&sharedGameState, NULL);
+    pthread_mutex_init(&roach_wasps_lock, NULL);
     context = zmq_ctx_new ();
 
     // Initialize random numbers array
     srand(time(NULL)); 
-    for(int i = 0; i < LENGTH_ARRAY; i++){
-        random_numbers[i] = rand()/10; 
-    }
-
     // Socket for frontend 1
     void *frontend = zmq_socket (context, ZMQ_ROUTER);
     int rc = zmq_bind (frontend, "tcp://*:5555");
@@ -241,6 +194,8 @@ int main (void)
     pthread_create(&proxy1, NULL, run_proxy, (void *)&args1);
     pthread_create(&proxy2, NULL, run_proxy, (void *)&args2);
 
+    initGameState();
+
     for (worker_nbr = 0; worker_nbr < 4; worker_nbr++) {
         pthread_t worker2;
         pthread_create(&worker2, NULL, handleLizardMessage, (void *) worker_nbr);
@@ -254,6 +209,8 @@ int main (void)
 
     // Cleanup
     zmq_ctx_destroy(context);
-    pthread_mutex_destroy(&lock);
+    pthread_mutex_destroy(&lizard_lock);
+    pthread_mutex_destroy(&sharedGameState);
+    pthread_mutex_destroy(&roach_wasps_lock);
     return 0;
 }

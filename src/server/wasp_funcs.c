@@ -9,7 +9,7 @@
 #include "wasp_funcs.h"
 
 void forceWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){
-    m->msg_type = MSG_TYPE_WASPS_DISCONNECT;
+    m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_DISCONNECT;
     size_t len = lizards_nroachestypes__game_message__pack(m, NULL);
     void *buf = malloc(len);
     lizards_nroachestypes__game_message__pack(m, buf);
@@ -59,22 +59,28 @@ void cleanWaspClient(WaspClient *waspClient){
 }
 
 void handleWaspsConnect(LizardsNroachestypes__GameMessage *m, void *socket, int id_wasp){
+    pthread_mutex_lock(&sharedGameState);
     m->index = id_wasp; 
     gameState.numWasps += m->n_wasps;  // Update the total number of wasps
     if(gameState.numWasps > MAX_WASPS){
         forceWaspDisconnect(m, socket);  // If the total number of wasps exceeds the maximum, disconnect the wasp client
+        pthread_mutex_unlock(&sharedGameState);
     } else {
         m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__ACK;
         addWaspClient(m->n_wasps, id_wasp);  // Add the wasp client to the list
+        pthread_mutex_lock(&roach_wasps_lock);
         WaspClient *waspClient = findWaspClient(id_wasp);  // Change to findWaspClient
 
-        // Adicione todas as vespas ao campo de jogo
+        // Add the wasps to the game
         for (int i = 0; i < waspClient->num_wasps; i++)  // Altere para num_wasps
         {
             wmove(gameState.my_win, waspClient->wasps[i].position.position_x, waspClient->wasps[i].position.position_y);
             waddch(gameState.my_win, '#');  // Representa vespas com '#'
         }
+        pthread_mutex_unlock(&roach_wasps_lock);
+
         wrefresh(gameState.my_win);
+        pthread_mutex_unlock(&sharedGameState);
 
         // Serialize the message
         LizardsNroachestypes__GameMessage ack_msg;
@@ -95,21 +101,27 @@ void handleWaspMovement(LizardsNroachestypes__GameMessage *m, void *socket){
     int wasp = m->wasp_index;  // Index of the wasp within the WaspClient
     int stingOccurred = 0;  // Flag to indicate if a sting occurred
 
+    pthread_mutex_lock(&sharedGameState);
+
     WaspClient *waspClient = findWaspClient(id_wasp);  // Localize the wasp client
 
     if(waspClient == NULL){
         forceWaspDisconnect(m, socket);  // If the wasp client is not found, disconnect it
+        pthread_mutex_unlock(&sharedGameState);
     } else {        
         // Define the direction of the wasp
         stingOccurred = WaspStingsLizard(NULL, waspClient);
 
         waspClient->wasps[wasp].direction = m->direction;  // Update the direction of the wasp
-        m->msg_type = MSG_TYPE_WASPS_MOVEMENT;  // Update the message type
+        m->msg_type = LIZARDS_NROACHESTYPES__MESSAGE_TYPE__WASPS_MOVEMENT;
         
         // Verify if the next position is occupied by a lizard
         if(waspClient->wasps[wasp].on_board == 1 && stingOccurred == 0){
+            pthread_mutex_lock(&roach_wasps_lock);
             renderWasp(waspClient, wasp);  // Render the wasp in the next position
+            pthread_mutex_unlock(&roach_wasps_lock);
         }
+        pthread_mutex_unlock(&sharedGameState);
 
         // Serialize the message
         LizardsNroachestypes__GameMessage ack_msg;  
@@ -124,7 +136,9 @@ void handleWaspMovement(LizardsNroachestypes__GameMessage *m, void *socket){
 }
 
 void disconnectAllWasps(){
+    pthread_mutex_lock(&sharedGameState);
     WaspClient *currentWaspClient = gameState.headWaspList;
+    pthread_mutex_lock(&roach_wasps_lock);
     while(currentWaspClient != NULL){
         for (int i = 0; i < currentWaspClient->num_wasps; i++)
         {
@@ -132,8 +146,10 @@ void disconnectAllWasps(){
         }
         currentWaspClient = currentWaspClient->next;
     }
+    pthread_mutex_unlock(&roach_wasps_lock);
     freeWaspList();
     gameState.numWasps = 0;
+    pthread_mutex_unlock(&sharedGameState);
 }
 
 void handleWaspDisconnect(LizardsNroachestypes__GameMessage *m, void *socket){

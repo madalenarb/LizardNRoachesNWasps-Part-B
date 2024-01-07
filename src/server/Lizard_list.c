@@ -120,11 +120,9 @@ void freeList(){
 
 // Get the LizardClient with the id
 LizardClient* findLizardClient(char id){
-    printf("findLizardClient\n");
     LizardClient* current = gameState.headLizardList;
     while(current != NULL){
         if(current->id == id){
-            printf("found lizard\n");
             return current;
         }
         current = current->next;
