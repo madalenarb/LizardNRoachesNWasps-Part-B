@@ -19,5 +19,8 @@
         "wasps_function.h": "c",
         "lizard-funcs.h": "c",
         "complex": "c"
-    }
+    },
+    "python.analysis.extraPaths": [
+        "./protos/python_out"
+    ]
 }

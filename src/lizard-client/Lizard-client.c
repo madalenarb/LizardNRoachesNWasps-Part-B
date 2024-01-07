@@ -44,7 +44,7 @@ void *display_thread_func(void* arg) {
 void *input_thread_func(void* arg) {
     char* server_name = (char*)arg;
     void *requester = zmq_socket(context, ZMQ_REQ);
-    int rc =zmq_connect(requester, "tcp://localhost:5556");
+    int rc =zmq_connect(requester, server_name);
     // int rc =zmq_connect(requester, argv2);
     assert(rc == 0);
 
