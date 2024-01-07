@@ -19,7 +19,6 @@
 #include "Lizard_list.h"
 
 void *context;
-void *publisher;
 
 // Function for running the proxy in a separate thread
 void *run_proxy(void *args) {
@@ -37,6 +36,8 @@ void *handleLizardMessage( void *ptr ){
     void *responder = zmq_socket (context, ZMQ_REP);
     int rc = zmq_connect (responder, "inproc://back-end2");
     assert (rc == 0);
+
+
 
     while (1) {
         message_t lizards_msg;
@@ -72,11 +73,19 @@ void *handleLizardMessage( void *ptr ){
             break;
         }
         zmq_send(responder, &lizards_msg, sizeof(lizards_msg), 0);
-        updateAndRenderEverything(publisher);
+        updateAndRenderEverything();
     }
     zmq_close (responder);
     return 0;
 
+}
+
+void* publishDisplayUpdates(void *publisher){
+    while(1){
+        handleDisplayUpdate(publisher);
+        usleep(100);
+    }
+    return NULL;
 }
 
 void *handleRoachWaspMessage( void *ptr ){
@@ -146,11 +155,13 @@ void *handleRoachWaspMessage( void *ptr ){
         void *buff = malloc(len);
         lizards_nroachestypes__game_message__pack(&ack_msg, buff);
         zmq_send(socket_roach_wasp, buff, len, 0);
+
         free(buff);
         
+        updateAndRenderEverything();
+
         lizards_nroachestypes__game_message__free_unpacked(received_msg, NULL);
         zmq_msg_close(&zmq_msg);
-        updateAndRenderEverything(publisher);
     }
     return 0;
 }
@@ -186,10 +197,9 @@ int main (void)
     rc = zmq_bind (backend2, "inproc://back-end2");
     assert (rc == 0);
 
-
-    // Initialize the PUB socket to send display updates to the clients
-    void *publisher = zmq_socket (context, ZMQ_PUB);
-    rc = zmq_bind (publisher, "tcp://*:5557");
+    // Socket for publisher
+    void *publisher = zmq_socket(context, ZMQ_PUB);
+    rc = zmq_bind(publisher, "tcp://*:5557");
     assert (rc == 0);
 
     
@@ -204,21 +214,34 @@ int main (void)
 
     initGameState();
 
+    pthread_t worker2[4];
     for (worker_nbr = 0; worker_nbr < 4; worker_nbr++) {
-        pthread_t worker2;
-        pthread_create(&worker2, NULL, handleLizardMessage, (void *) worker_nbr);
+        pthread_create(&worker2[worker_nbr], NULL, handleLizardMessage, (void *) worker_nbr);
     }
     pthread_t worker;
     pthread_create(&worker, NULL, handleRoachWaspMessage, (void *) 5);
+    pthread_t publisher_thread;
+    pthread_create(&publisher_thread, NULL, publishDisplayUpdates, (void *) publisher);
 
     // Wait for proxy to finish
     pthread_join(proxy1, NULL);
     pthread_join(proxy2, NULL);
+
+    for(int i = 0; i < 4; i++){
+        pthread_join(worker2[i], NULL);
+    }
+    pthread_join(worker, NULL);
+    pthread_join(publisher_thread, NULL);
+
 
     // Cleanup
     zmq_ctx_destroy(context);
     pthread_mutex_destroy(&lizard_lock);
     pthread_mutex_destroy(&sharedGameState);
     pthread_mutex_destroy(&roach_wasps_lock);
+    zmq_ctx_destroy(context);
+    zmq_close(frontend);
+    zmq_close(backend);
+    zmq_close(frontend2);
     return 0;
 }

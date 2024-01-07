@@ -53,8 +53,8 @@ WaspClient* findWaspClient(int id_wasp){
     return currentWaspClient;
 }
 
-int countWasps(WaspClient *headWaspList){
-    WaspClient *currentWaspClient = headWaspList;
+int countWasps(){
+    WaspClient *currentWaspClient = gameState.headWaspList;
     int count = 0;
     while(currentWaspClient != NULL){
         count += currentWaspClient->num_wasps;

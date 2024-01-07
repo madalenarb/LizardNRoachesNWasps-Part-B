@@ -63,7 +63,7 @@ typedef struct message_t
     direction_t direction;
 } message_t;
 
-typedef enum EntityType {NOTHING, LIZARD, ROACH} EntityType;
+typedef enum EntityType {NOTHING, LIZARD, ROACH, WASP} EntityType;
 
 /**
  * @brief Structure representing a position in 2D space.
@@ -81,8 +81,10 @@ typedef struct display_update_t
     position_t tail_position[5];
     direction_t direction;
     position_t roach_positions[MAX_ROACHES_PER_CLIENT];
+    position_t wasp_positions[MAX_ROACHES_PER_CLIENT];
     int roach_score[MAX_ROACHES_PER_CLIENT];
     int roaches_num;
+    int wasps_num;
     char ch;
     int score;
     int on_board[MAX_ROACHES_PER_CLIENT];

@@ -31,6 +31,6 @@ void printList();
 void disconnectLizardClient(char id);
 void freeList();
 LizardClient* findLizardClient(char id);
-int countLizards(LizardClient* headLizardList);
+int countLizards();
 
 #endif /* LIZARD_LIST_H */

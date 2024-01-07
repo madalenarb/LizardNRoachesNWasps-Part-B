@@ -41,23 +41,35 @@ void renderRoach(WINDOW *display_win, display_update_t game_update){
     }
 }
 
+void renderWasp(WINDOW *display_win, display_update_t game_update){
+    for(int i = 0; i < game_update.wasps_num; i++){
+        mvwaddch(display_win, game_update.wasp_positions[i].position_x, game_update.wasp_positions[i].position_y, '#');
+    }
+}
+
 void updateDisplay(WINDOW *display_win, void *subscriber){
     int totalEntities = 0;
     zmq_recv(subscriber, &totalEntities, sizeof(int), 0);
-
     display_update_t *gameState = (display_update_t *)malloc(sizeof(display_update_t) * totalEntities);
-    zmq_recv(subscriber, gameState, sizeof(display_update_t) * totalEntities, 0);
-
-    //Clear the window
+    if(totalEntities > 0){
+        zmq_recv(subscriber, gameState, sizeof(display_update_t) * totalEntities, 0);
+    } else {
+        gameState = NULL;
+    }
+    display_win = newwin(WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0);
     werase(display_win);
-    box(display_win, 0, 0);
+    box(display_win, 0 , 0);
 
     //Render the entities
-    for(int i = 0; i < totalEntities; i++){
-        if(gameState[i].entity_type == LIZARD){
-            renderLizard(display_win, gameState[i]);
-        } else if(gameState[i].entity_type == ROACH){
-            renderRoach(display_win, gameState[i]);
+    if(totalEntities > 0){
+        for(int i = 0; i < totalEntities; i++){
+            if(gameState[i].entity_type == LIZARD){
+                renderLizard(display_win, gameState[i]);
+            } else if(gameState[i].entity_type == ROACH){
+                renderRoach(display_win, gameState[i]);
+            } else if(gameState[i].entity_type == WASP){
+                renderWasp(display_win, gameState[i]);
+            }
         }
     }
     wrefresh(display_win);
@@ -71,10 +83,11 @@ int main()
     void *subscriber = zmq_socket(context, ZMQ_SUB);
     zmq_connect(subscriber, "tcp://localhost:5557");
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-
     initscr();
     cbreak();
     noecho();
+    curs_set(0); // Make the cursor invisible
+
 
     //Set up the window to draw the game in
     WINDOW *display_win = newwin(WINDOW_HEIGHT, WINDOW_WIDTH, 0, 0);

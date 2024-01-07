@@ -21,6 +21,15 @@ void populateRoachUpdate(RoachClient *roachClient, display_update_t *gameState)
     }
 }
 
+void populateWaspUpdate(WaspClient *waspClient, display_update_t *gameState)
+{
+    gameState->entity_type = WASP;
+    for(int i = 0; i < waspClient->num_wasps; i++){
+        gameState->wasp_positions[i] = waspClient->wasps[i].position;
+        gameState->wasps_num = waspClient->num_wasps;
+    }
+}
+
 /**
  * 
  * @brief Handles the display update
@@ -34,10 +43,11 @@ void populateRoachUpdate(RoachClient *roachClient, display_update_t *gameState)
 */
 void handleDisplayUpdate(void *socket_display)
 {   
-    LizardClient *currentLizardClient = gameState.headLizardList;
-    RoachClient *currentRoachClient = gameState.headRoachList;
+    LizardClient *currentLizardClient = NULL;
+    RoachClient *currentRoachClient = NULL;
+    WaspClient *currentWaspClient = NULL;
 
-    int totalEntities = countLizards(gameState.headLizardList) + countRoaches(gameState.headRoachList);
+    int totalEntities = countLizards() + countRoaches() + countWasps();
     int i = 0;
 
     display_update_t *gameStates = (display_update_t *)malloc(sizeof(display_update_t) * totalEntities);
@@ -50,6 +60,7 @@ void handleDisplayUpdate(void *socket_display)
     }
     
     if(gameState.headLizardList == NULL && gameState.headRoachList == NULL){
+        zmq_send(socket_display, &totalEntities, sizeof(int), 0);
         return;
     }
 
@@ -69,11 +80,19 @@ void handleDisplayUpdate(void *socket_display)
         currentRoachClient = currentRoachClient->next;
     }
 
-    //Send total number of entities to display
-    zmq_send(socket_display, &totalEntities, sizeof(int), 0);
+    if(gameState.headWaspList != NULL)
+        currentWaspClient = gameState.headWaspList;
 
+    while(currentWaspClient != NULL){
+        populateWaspUpdate(currentWaspClient, &gameStates[i++]);        
+        currentWaspClient = currentWaspClient->next;
+    }
+
+    zmq_send(socket_display, &totalEntities, sizeof(int), 0);
     //Send full game state to display
+
     zmq_send(socket_display, gameStates, sizeof(display_update_t) * totalEntities, 0);
+
 
     free(gameStates);
 }

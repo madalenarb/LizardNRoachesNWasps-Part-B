@@ -81,8 +81,8 @@ void printList(){
     }
 }
 
-int countLizards(LizardClient* headLizardList){
-    LizardClient* current = headLizardList;
+int countLizards(){
+    LizardClient* current = gameState.headLizardList;
     int count = 0;
     while(current != NULL){
         count++;

@@ -7,7 +7,6 @@
 
 #include "Lizard-funcs.h"
 
-
 int main (){
 
     char direction_name[4][10] = {"UP", "DOWN", "LEFT", "RIGHT"};
@@ -17,6 +16,10 @@ int main (){
     int score = 0;
     void *requester = zmq_socket (context, ZMQ_REQ);
     zmq_connect (requester, "tcp://localhost:5556");
+
+    void *subscriber = zmq_socket (context, ZMQ_SUB);
+    zmq_connect (subscriber, "tcp://localhost:5557");
+    zmq_setsockopt (subscriber, ZMQ_SUBSCRIBE, "", 0);
 
     message_t msg;
     msg.msg_type = MSG_TYPE_LIZARD_CONNECT;
@@ -53,18 +56,18 @@ int main (){
         if(score < 0){
             loss = lizardsLoses(&msg);
         }
+        
         key = getch();
-
         select_direction(key, &msg);
 
-        
-
         zmq_send(requester, &msg, sizeof(msg), 0);      
-
         zmq_recv(requester, &resp, sizeof(resp), 0);
+
         if(key == 'q' || flag_exit || loss)
             break;
-        score = resp.score_lizard;
+            
+        score = resp.score_lizard;  
+
         refresh();
         mvprintw(0, 0, "You pressed %s     score: %d   ", direction_name[msg.direction], score);
         

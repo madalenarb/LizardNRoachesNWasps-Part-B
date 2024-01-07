@@ -63,7 +63,7 @@ WaspClient* findWaspClient(int id_wasp);
  * @param headWaspList Pointer to the head of the linked list of wasp clients.
  * @return Total number of wasps.
  */
-int countWasps(WaspClient *headWaspList);
+int countWasps();
 
 /**
  * @brief Frees the memory allocated for the linked list of wasp clients.

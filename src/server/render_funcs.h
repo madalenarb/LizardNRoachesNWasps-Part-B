@@ -179,5 +179,6 @@ void updateAndRenderWasps();
 */
 void renderRoaches(RoachClient *roachClient);
 
-void updateAndRenderEverything(void *socket_display);
+void updateAndRenderEverything();
+
 #endif // RENDER_FUNCS_H
