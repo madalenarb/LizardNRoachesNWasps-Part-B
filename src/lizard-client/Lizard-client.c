@@ -16,7 +16,7 @@ typedef struct {
 pthread_mutex_t lock;
 
 // Display Thread Function
-void *display_thread_func(void* arg) {
+void *display_thread_func() {
     void *subscriber = zmq_socket(context, ZMQ_SUB);
     zmq_connect(subscriber, "tcp://localhost:5557");
 

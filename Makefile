@@ -1,6 +1,6 @@
 # LizardsNRoaches/Makefile
 
-all: protocol server lizard-client roach-client display-app wasps-client
+all: protocol server lizard-client roach-client display-app
 
 protocol:
 	@$(MAKE) -C common
@@ -17,9 +17,6 @@ roach-client:
 display-app:
 	@$(MAKE) -C src/display-app
 
-wasps-client:
-	@$(MAKE) -C src/wasps-client
-
 getPid:
 	lsof -i :5555
 
@@ -31,3 +28,4 @@ clean:
 	@$(MAKE) -C src/roaches-client clean
 	@$(MAKE) -C src/display-app clean
 	@$(MAKE) -C src/wasps-client clean
+	@find . -type f -name '*.o' -delete
