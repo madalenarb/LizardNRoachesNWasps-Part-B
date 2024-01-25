@@ -26,11 +26,45 @@ typedef struct LizardClient {
     struct LizardClient *next; ///< Pointer to the next lizard client in the list.
 } LizardClient;
 
+/**
+ * @brief Initializes a new LizardClient.
+ *
+ * @param id ID of the lizard client.
+ * @param password Password of the lizard client.
+ * @return Pointer to the newly created LizardClient.
+ */
 void addLizardClient(char id, int password);
+
+/**
+ * @brief Prints the list of LizardClients.
+ */
 void printList();
+
+/**
+ * @brief Disconnects a lizard client from the game.
+ *
+ * @param id ID of the lizard client to disconnect.
+ */
 void disconnectLizardClient(char id);
+
+/**
+ * @brief Frees the list of LizardClients.
+ */
 void freeList();
+
+/**
+ * @brief Finds a lizard client in the list.
+ *
+ * @param id ID of the lizard client to find.
+ * @return Pointer to the lizard client if found, NULL otherwise.
+ */
 LizardClient* findLizardClient(char id);
+
+/**
+ * @brief Counts the number of lizards in the list.
+ *
+ * @return Number of lizards in the list.
+ */
 int countLizards();
 
 #endif /* LIZARD_LIST_H */

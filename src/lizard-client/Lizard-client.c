@@ -1,18 +1,24 @@
+/**
+ * Lizard-client.c
+ * @brief Implementation of functions related to lizard client functionalities.
+ * 
+ * This file contains the definitions for functions responsible for lizard client functionalities, such as selecting directions based on user input.
+ */
+
 #include "Lizard-funcs.h"
 #include <unistd.h>
 #include <signal.h>
-// Global Variables
-WINDOW *input_win, *display_win;
-volatile int score = 0;
+
+/**
+ * Global variables
+*/
+WINDOW *input_win, *display_win; // Windows for input and display
+volatile int score = 0;        // Score of the lizard
 volatile int exit_flag = 0; // Flag to indicate when to exit the program
-volatile char ch;
-void *context;
+volatile char ch;// ID of the lizard
+void *context; // ZeroMQ context
 
-typedef struct {
-    char* arg1;
-    char* arg2;
-} thread_args_t;
-
+// mutex fora shared variables
 pthread_mutex_t lock;
 
 // Display Thread Function

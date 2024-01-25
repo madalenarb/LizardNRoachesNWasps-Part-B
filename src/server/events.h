@@ -16,8 +16,6 @@
 /**
  * @brief Handles the event where a lizard encounters another lizard.
  *
- * @param my_win The window in which the game is being rendered.
- * @param headLizardList Pointer to the head of the linked list of lizard clients.
  * @param currentLizard Pointer to the current lizard client.
  */
 int lizardHitsLizard(LizardClient *currentLizard);
@@ -25,8 +23,6 @@ int lizardHitsLizard(LizardClient *currentLizard);
 /**
  * @brief Handles the event where a lizard eats a roach.
  *
- * @param my_win The window in which the game is being rendered.
- * @param headRoachList Pointer to the head of the linked list of roach clients.
  * @param currentLizard Pointer to the current lizard client.
  */
 void lizardEatsRoach(LizardClient *currentLizard);
@@ -34,8 +30,7 @@ void lizardEatsRoach(LizardClient *currentLizard);
 /**
  * @brief Handles the event where a wasp stings a lizard.
  *
- * @param my_win The window in which the game is being rendered.
- * @param headLizardList Pointer to the head of the linked list of lizard clients.
+ * @param currentLizard Pointer to the current lizard client.
  * @param currentWasp Pointer to the current wasp client.
  */
 int WaspStingsLizard(LizardClient *currentLizard, WaspClient *currentWasp);

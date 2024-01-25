@@ -89,6 +89,7 @@ position_t* DeriveTailPosition(position_t head_position, direction_t direction){
     return tail_position;
 }
 
+
 void renderLizard(WINDOW *display_win, display_update_t game_update){
     mvwaddch(display_win, game_update.position.position_x, game_update.position.position_y, game_update.ch);
     //Draw the tail

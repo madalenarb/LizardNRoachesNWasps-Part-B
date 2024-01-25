@@ -7,6 +7,7 @@
 
 #include "events.h"
 
+
 int lizardHitsLizard(LizardClient *currentLizard){
     LizardClient *otherLizard = gameState.headLizardList;
     position_t nextPosition1 = auxNextPosition(currentLizard->position, currentLizard->direction);

@@ -30,17 +30,7 @@ void populateWaspUpdate(WaspClient *waspClient, display_update_t *gameState)
     }
 }
 
-/**
- * 
- * @brief Handles the display update
- * 
- * This function handles the display update by sending the display update message to the display application.
- * 
- * @param socket_display The socket to send the display update message to
- * @param headLizardList The head of the lizard client linked list
- * @param headRoachList The head of the roach client linked list
- * 
-*/
+
 void handleDisplayUpdate(void *socket_display)
 {   
     LizardClient *currentLizardClient = NULL;

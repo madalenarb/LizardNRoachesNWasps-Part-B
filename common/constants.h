@@ -1,3 +1,7 @@
+/**
+ * Constants used by both the client and server.
+*/
+
 #define WINDOW_WIDTH 30
 #define WINDOW_HEIGHT 30
 
