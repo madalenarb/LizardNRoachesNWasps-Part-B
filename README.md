@@ -47,9 +47,8 @@
 - Multithreading without resorting to non-blocking communication or active wait.
 - Utilizes **Protocol Buffers** for message encoding.
 
-## Building and Running
-
-Use the Makefile in the project's root directory:
+# Building and Running
+Certainly, here's the section for your README.md file in Markdown format:
 
 ## How to Run "LizardsNroachesNwasps"
 
@@ -67,4 +66,48 @@ cd LizardsNroachesNwasps
 make all
 ```
 
+This will compile the server, all clients, and any necessary libraries.
 
+### Running the Server
+Start the server by navigating to the server directory and executing the server binary:
+
+```bash
+cd src/server
+./lizardsNroachesNwasps-server
+```
+
+### Running the Lizard Client
+To run a lizard client, use the following command, replacing `<server_address>` and `<port>` with the appropriate values:
+
+```bash
+cd src/lizard-client
+./Lizard-client <server_address> <port>
+```
+
+### Running the Roaches Client
+Similarly, start the roaches client by navigating to its directory and executing the binary:
+
+```bash
+cd src/roaches-client
+./Roaches-client <server_address> <port>
+```
+
+### Running the Wasps Client
+The Wasps-client is a Python script. Ensure you are in the correct directory and run the script:
+
+```bash
+cd src/wasps-client
+python Wasps-client.py <server_address> <port>
+```
+
+### Stopping the Game
+To stop the game, you can simply terminate the server and clients using Ctrl+C in their respective terminal windows.
+
+### Cleaning Up
+After you're done, you can clean up all compiled files by running:
+
+```bash
+make clean
+```
+
+This will remove all object files and binaries, preparing the directory for a fresh compilation.
