@@ -1,29 +1,70 @@
-# LizardsNRoaches
+# LizardsNroachesNwasps: Multiplayer Network Game
 
-## To Do List:
+## Project Overview
 
-Anti-Cheating Method Ideas:
-- PIN para o lizardCLient. (se tiver tempo/perguntar ao professor)
-- A way to know if a lizard is already connected, because if another one tries to join it can't join.
-- Let the server generate and assign IDs to clients. 
+"LizardsNroachesNwasps" is an innovative multiplayer game, a creative variation of the classic snake game, developed for the Systems Programming course (2023/2024). This project is a testament to the skills in network programming, concurrent systems, and game design. It involves lizards navigating a field, eating cockroaches, and avoiding wasps, managed by a server and operated by various clients.
 
-É possivel fazer com lista?
+## Game Mechanics
 
-Afinal o display e o server vão mostrar o mesmo? qual é a diferença?
+- **Players control lizards**, trying to eat cockroaches and avoid wasps in a dynamic field.
+- **Cockroaches** (denoted by digits) and **wasps** (represented by '#') move randomly.
+- **Lizards' scores** change by eating cockroaches (+value of the cockroach) or being stung by wasps (-10 points).
+- A **lizard wins** at 50 points and **loses** at a negative score.
+
+## Distributed Architecture
+
+- **Lizard-client**: Manages lizard movements based on user input.
+- **lizardsNroachesNwasps-server**: Central server handling game logic, field updates, and client communication.
+- **Roaches-client**: Controls up to 10 roaches with random movements.
+- **Wasps-client**: Similar to Roaches-client but for controlling wasps.
+
+## User Interfaces
+
+- **Lizard-client** and **server** use NCurses for display.
+- **Display-app** is integrated into Lizard-client for real-time field visualization.
+- **Roaches-client** and **Wasps-client** don't require special interfaces but may output movements to the console.
+
+## Interactivity and Networking
+
+- Uses **ZeroMQ TCP sockets** for client-server communication.
+- Protocols like **Lizard_connect**, **Lizard_movement**, **Roaches_movement**, **Wasps_movement**, and **Field_update** facilitate gameplay.
+- The server is **multi-threaded**, handling multiple lizard clients and roach/wasp clients concurrently.
+
+## Lifecycle of Game Elements
+
+- **Cockroaches**: Appear/disappear based on Roaches-client's connection/disconnection. Eaten cockroaches reappear after 5 seconds.
+- **Wasps**: Managed similar to cockroaches by the Wasps-client.
+- **Lizards**: Have their lifecycle controlled by Lizard-client connections and movements.
+
+## Error Handling and Security
+
+- Robust **error validation** and **cheating prevention** mechanisms in place.
+- Ensures game integrity against protocol manipulation.
+
+## Development and Technologies
+
+- Developed in **standard C (ANSI or C99)**.
+- Multithreading without resorting to non-blocking communication or active wait.
+- Utilizes **Protocol Buffers** for message encoding.
+
+## Building and Running
+
+Use the Makefile in the project's root directory:
+
+## How to Run "LizardsNroachesNwasps"
+
+### Prerequisites
+- Ensure you have a C compiler (like GCC) and Make installed for compiling the C programs.
+- For running the Wasps-client, Python 3.x is required.
+- ZeroMQ libraries must be installed on your system.
+- Protocol Buffers (protobuf) should be installed for message encoding.
+
+### Compilation
+To compile all components of the game, including the server, lizard client, roaches client, and protocol buffers, use the provided Makefile:
+
+```bash
+cd LizardsNroachesNwasps
+make all
+```
 
 
------------
-- Colocar scores no server, display e client
-
--------
-- DIsplay - PUB/SUB ?
-
-
-- Make graphical interface for the server
-- Make graphical interface for the display
-
-if rc==0 failes:
-lsof -i :5555
-kill -9 PID
-
-kill -9 264919
