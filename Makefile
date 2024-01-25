@@ -1,6 +1,15 @@
 # LizardsNRoaches/Makefile
 
-all: protocol server lizard-client roach-client 
+all: install-dependencies protocol server lizard-client roach-client 
+
+install-dependencies:
+	sudo apt-get update
+	sudo apt-get install -y build-essential
+	sudo apt-get install -y libzmq3-dev
+	sudo apt-get install -y protobuf-compiler
+	sudo apt-get install -y python3-pip
+	pip3 install pyzmq
+	pip3 install protobuf
 
 protocol:
 	@$(MAKE) -C common
@@ -14,10 +23,8 @@ lizard-client:
 roach-client:
 	@$(MAKE) -C src/roaches-client
 
-
 getPid:
 	lsof -i :5555
-
 
 clean:
 	@$(MAKE) -C common clean
